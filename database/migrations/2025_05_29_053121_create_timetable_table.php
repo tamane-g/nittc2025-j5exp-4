@@ -12,7 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('timetable', function (Blueprint $table) {
-            $table->id();
+            $table->enum('term', ['semester_1', 'semester_2', 'full_year'])
+            $table->enum('day', ['Monday', 'Tuesday', 'Wednseday', 'Thursday', 'Friday']);
+            $table->enum('lesson', ['lesson_1', 'lesson_2', 'lesson_3', 'lesson_4']);
+            $table->integer('grade');
+            $table->integer('class');
+            $table->string('subject', 20);
+            $table->string('teacher', 20);
+            $table->string('classroom', 20);
             $table->timestamps();
         });
     }
