@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('timetable_changes', function (Blueprint $table) {
+        Schema::create('user', function (Blueprint $table) {
             $table->id();
-            $table->date('original_date');
-            $table->integer('original_time');
-            $table->date('updated_date');
-            $table->integer('original_time');
-            $table->boolean('approval');
-            $table->foreignId('room_id')->constrained();
+            $table->enum('type', ['student', 'teacher', 'administrator']);
+            $table->string('name', 30);
+            $table->integer('grade');
+            $table->integer('class');
+            $table->string('mail_address', 30);
+            $table->string('password', 30);
             $table->timestamps();
         });
     }
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('timetable_changes');
+        Schema::dropIfExists('user');
     }
 };
