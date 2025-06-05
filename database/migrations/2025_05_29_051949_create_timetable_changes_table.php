@@ -14,12 +14,15 @@ return new class extends Migration
         Schema::create('timetable_changes', function (Blueprint $table) {
             $table->id();
             $table->date('original_date');
-            $table->integer('original_time');
-            $table->date('updated_date');
-            $table->integer('original_time');
+            $table->enum('timetable_term', ['semester_1', 'semester_2', 'full_year']);
             $table->boolean('approval');
             $table->integer('class_room_id');
             $table->timestamps();
+
+            $table->foreign(['timetable_term'])
+                  ->references(['term'])
+                  ->on('timetable')
+                  ->cascadeOnDelete();
 
             $table->foreign(['class_room_id'])
                   ->references(['id'])
