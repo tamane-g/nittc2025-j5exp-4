@@ -20,8 +20,13 @@ return new class extends Migration
             $table->string('subject', 20);
             $table->string('teacher', 20);
             $table->integer('class_room_id');
+            $table->integer('subject_id');
             $table->timestamps();
 
+            $table->foreign(['subject_id'])
+                  ->references(['id'])
+                  ->on('subject')
+                  ->cascadeOnDelete();
             $table->foreign(['class_room_id'])
                   ->references(['id'])
                   ->on('class_rooms')

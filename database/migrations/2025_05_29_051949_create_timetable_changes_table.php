@@ -17,8 +17,13 @@ return new class extends Migration
             $table->enum('timetable_term', ['semester_1', 'semester_2', 'full_year']);
             $table->boolean('approval');
             $table->integer('class_room_id');
+            $table->integer('subject_id');
             $table->timestamps();
 
+            $table->foreign(['subject_id'])
+                  ->references(['id'])
+                  ->on('subject')
+                  ->cascadeOnDelete();
             $table->foreign(['timetable_term'])
                   ->references(['term'])
                   ->on('timetable')
