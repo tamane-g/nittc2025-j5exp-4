@@ -18,8 +18,13 @@ return new class extends Migration
             $table->date('updated_date');
             $table->integer('original_time');
             $table->boolean('approval');
-            $table->foreignId('room_id')->constrained();
+            $table->integer('class_room_id');
             $table->timestamps();
+
+            $table->foreign(['class_room_id'])
+                  ->references(['id'])
+                  ->on('class_rooms')
+                  ->cascadeOnDelete();
         });
     }
 

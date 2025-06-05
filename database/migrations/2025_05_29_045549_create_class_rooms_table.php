@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('class_rooms', function (Blueprint $table) {
-            $table->id('room_id');
+            $table->id();
             $table->string('name', 100);
             $table->boolean('is_concurrent');
             $table->timestamps();
