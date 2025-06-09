@@ -24,7 +24,11 @@ Route::middleware('auth')->group(function () {
 */
 
 Route::get('/', function () {
-    return Inertia::render('Hello', []);
+    return Inertia::render('App', []);
 });
 
-// require __DIR__.'/auth.php';
+/*Route::get('/login', function () {
+    return Inertia::render('Login', []);
+});*/
+
+require __DIR__.'/auth.php';
