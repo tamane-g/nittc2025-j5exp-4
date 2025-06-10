@@ -9,7 +9,7 @@ export default function TeacherHome() {
 
   const buttonConfigs = [
     { label: '時間割', path: '/timetable' },
-    { label: '変更申請', path: '/timetable-change' },
+    { label: '変更申請', path: '/timetableClick' },
     { label: '通知', path: '/notification' },
     { label: '言語設定', path: '/language' },
     { label: 'ログアウト', path: '/' },

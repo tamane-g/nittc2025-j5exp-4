@@ -25,10 +25,11 @@ function formatDate(date: Date) {
 }
 
 
-export default function Timetable() {
+export default function TimetableClick() {
 
   const navigate = useNavigate(); // ← 追加
   const [data] = useState(tableData);
+  const [clickedMessage] = useState('');
   const [currentMonday, setCurrentMonday] = useState(getStartOfWeek(new Date()));
 
   const changeWeek = (offset: number) => {
@@ -42,6 +43,10 @@ export default function Timetable() {
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(endOfWeek.getDate() + 4);
 
+  const handleCellClick = (rowIndex: number, colIndex: number) => {
+    if (colIndex === 0) return;
+    navigate('/timetable-change');
+  };
 
   return (
     <>
@@ -56,6 +61,11 @@ export default function Timetable() {
         </div>
       </div>
 
+      {clickedMessage && (
+        <div style={{ marginBottom: 10, fontWeight: 'bold', color: 'blue' }}>
+          {clickedMessage}
+        </div>
+      )}
       <div className="back-button-container">
         <Button variant="filled" size="xl" onClick={() => navigate(-1)} style={{ width: '150px' }}>戻る</Button>
       </div>
@@ -186,6 +196,7 @@ export default function Timetable() {
                 return (
                   <Table.Td
                     key={colIndex}
+                    onClick={() => handleCellClick(rowIndex, colIndex)}
                     className={`ag-cell ${isLeftColumn
                         ? ''
                         : isGreen
@@ -195,7 +206,7 @@ export default function Timetable() {
                             : ''
                       }`}
                     col-id={isLeftColumn ? 'idColumn' : `col${colIndex}`}
-                    style={{ cursor: 'default' }}
+                    style={{ cursor: isLeftColumn ? 'default' : 'pointer' }}
                   >
                     {cell}
                   </Table.Td>
