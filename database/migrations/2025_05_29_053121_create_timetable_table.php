@@ -17,7 +17,6 @@ return new class extends Migration
             $table->enum('lesson', ['lesson_1', 'lesson_2', 'lesson_3', 'lesson_4']);
             $table->integer('grade');
             $table->integer('class');
-            $table->string('subject', 20);
             $table->string('teacher', 20);
             $table->integer('class_room_id');
             $table->integer('subject_id');
