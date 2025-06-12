@@ -12,11 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('timetable', function (Blueprint $table) {
+            $table->id('user_id');
             $table->enum('term', ['semester_1', 'semester_2', 'full_year']);
             $table->enum('day', ['Monday', 'Tuesday', 'Wednseday', 'Thursday', 'Friday']);
             $table->enum('lesson', ['lesson_1', 'lesson_2', 'lesson_3', 'lesson_4']);
-            $table->integer('grade');
-            $table->integer('class');
             $table->string('teacher', 20);
             $table->integer('class_room_id');
             $table->integer('subject_id');
@@ -29,6 +28,10 @@ return new class extends Migration
             $table->foreign(['class_room_id'])
                   ->references(['id'])
                   ->on('class_rooms')
+                  ->cascadeOnDelete();
+            $table->foreign(['user_id'])
+                  ->references(['id'])
+                  ->on('user')
                   ->cascadeOnDelete();
         });
     }

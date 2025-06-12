@@ -15,19 +15,19 @@ return new class extends Migration
             $table->id();
             $table->enum('type', ['student', 'teacher', 'administrator']);
             $table->string('name', 30);
-            $table->integer('timetable_grade');
-            $table->integer('timetable_class');
+            $table->integer('class_grade');
+            $table->integer('class_class');
             $table->string('mail_address', 30);
             $table->string('password', 30);
             $table->timestamps();
 
-            $table->foreign(['timetable_grade'])
+            $table->foreign(['class_grade'])
                   ->references(['grade'])
-                  ->on('timetable')
+                  ->on('class')
                   ->cascadeOnDelete();
-            $table->foreign(['timetable_class'])
+            $table->foreign(['class_class'])
                   ->references(['class'])
-                  ->on('timetable')
+                  ->on('class')
                   ->cascadeOnDelete();
         });
     }

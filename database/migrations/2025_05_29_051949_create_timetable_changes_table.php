@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('timetable_changes', function (Blueprint $table) {
             $table->id();
-            $table->date('original_date');
+            $table->date('change_date');
+            $table->enum('change_lesson', ['lesson1', 'lesson2', 'lesson3', 'lesson4']);
             $table->enum('timetable_term', ['semester_1', 'semester_2', 'full_year']);
             $table->boolean('approval');
             $table->integer('class_room_id');
@@ -28,10 +29,13 @@ return new class extends Migration
                   ->references(['term'])
                   ->on('timetable')
                   ->cascadeOnDelete();
-
             $table->foreign(['class_room_id'])
                   ->references(['id'])
                   ->on('class_rooms')
+                  ->cascadeOnDelete();
+            $table->foreign(['change_lesson'])
+                  ->references(['lesson'])
+                  ->on('timetable')
                   ->cascadeOnDelete();
         });
     }

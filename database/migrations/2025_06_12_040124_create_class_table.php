@@ -11,16 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('class_rooms', function (Blueprint $table) {
+        Schema::create('class', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 100);
-            $table->boolean('is_concurrent');
-            $table->id('timetable_change_date');
-            $table->boolean('usablility');
+            $table->integer('grade');
+            $table->integer('class');
+            $table->integer('class_rooms_id');
             $table->timestamps();
-            $table->foreign(['timetable_change_date'])
-                  ->references(['change_date'])
-                  ->on('timetable_changes')
+
+            $table->foreign(['class_rooms_id'])
+                  ->references(['id'])
+                  ->on('class_rooms')
                   ->cascadeOnDelete();
         });
     }
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('class_rooms');
+        Schema::dropIfExists('class');
     }
 };
