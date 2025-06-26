@@ -24,11 +24,11 @@ return new class extends Migration
             $table->timestamps();
             $table->foreign(['class_grade'])
                   ->references(['grade'])
-                  ->on('class_table')
+                  ->on('class')
                   ->cascadeOnDelete();
             $table->foreign(['class_class'])
                   ->references(['class'])
-                  ->on('class_table')
+                  ->on('class')
                   ->cascadeOnDelete();
         });
 
