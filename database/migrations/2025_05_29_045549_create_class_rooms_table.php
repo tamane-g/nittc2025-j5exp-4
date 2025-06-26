@@ -20,7 +20,7 @@ return new class extends Migration
             $table->timestamps();
             $table->foreign(['timetable_change_date'])
                   ->references(['change_date'])
-                  ->on('timetable_changes_table')
+                  ->on('timetable_changes')
                   ->cascadeOnDelete();
         });
     }
