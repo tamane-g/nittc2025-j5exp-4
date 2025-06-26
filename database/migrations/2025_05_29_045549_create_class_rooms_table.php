@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name', 100);
             $table->boolean('is_concurrent');
-            $table->id('timetable_change_date');
+            $table->date('timetable_change_date');
             $table->boolean('usablility');
             $table->timestamps();
             $table->foreign(['timetable_change_date'])
