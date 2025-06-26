@@ -31,7 +31,7 @@ return new class extends Migration
                   ->references(['class'])
                   ->on('school_classes')
                   ->cascadeOnDelete();
-        });
+            });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
@@ -47,8 +47,8 @@ return new class extends Migration
             $table->longText('payload');
             $table->integer('last_activity')->index();
         });
+    
     }
-
     /**
      * Reverse the migrations.
      */
