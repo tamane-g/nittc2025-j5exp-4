@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('timetable_changes', function (Blueprint $table) {
+        Schema::create('school_classes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained();
-            $table->date('before_date');
-            $table->date('after_date');
-            $table->boolean('approval');
+            $table->integer('grade');
+            $table->integer('class');
             $table->timestamps();
         });
     }
@@ -26,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('timetable_changes');
+        Schema::dropIfExists('school_classes');
     }
 };
