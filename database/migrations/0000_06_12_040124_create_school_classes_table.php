@@ -16,6 +16,9 @@ return new class extends Migration
             $table->integer('grade');
             $table->integer('class');
             $table->timestamps();
+            
+            $table->index('grade');
+            $table->index('class');
         });
     }
 

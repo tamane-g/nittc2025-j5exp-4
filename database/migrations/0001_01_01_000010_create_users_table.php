@@ -15,20 +15,21 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->enum('type', ['student', 'teacher', 'administrator']);
-            $table->integer('class_grade');
-            $table->integer('class_class');
+            $table->integer('school_class_grade');
+            $table->integer('school_class_class');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
-            $table->foreign(['class_grade'])
+            
+            $table->foreign(['school_class_grade'])
                   ->references(['grade'])
-                  ->on('class')
+                  ->on('school_classes')
                   ->cascadeOnDelete();
-            $table->foreign(['class_class'])
+            $table->foreign(['school_class_class'])
                   ->references(['class'])
-                  ->on('class')
+                  ->on('school_classes')
                   ->cascadeOnDelete();
         });
 
