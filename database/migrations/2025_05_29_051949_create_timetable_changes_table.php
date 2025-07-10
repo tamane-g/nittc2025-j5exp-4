@@ -14,8 +14,19 @@ return new class extends Migration
         Schema::create('timetable_changes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained();
+            
             $table->date('before_date');
+            $table->foreign('before_timetable_id')
+                  ->references('id')
+                  ->on('timetables')
+                  ->onDelete('set null');
+                  
             $table->date('after_date');
+            $table->foreign('after_timetable_id')
+                  ->references('id')
+                  ->on('timetables')
+                  ->onDelete('cascade');
+                  
             $table->boolean('approval');
             $table->timestamps();
         });
