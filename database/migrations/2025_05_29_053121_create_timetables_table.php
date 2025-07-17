@@ -16,9 +16,10 @@ return new class extends Migration
             $table->enum('term', ['semester_1', 'semester_2', 'full_year']);
             $table->enum('day', ['Monday', 'Tuesday', 'Wednseday', 'Thursday', 'Friday']);
             $table->enum('lesson', ['lesson_1', 'lesson_2', 'lesson_3', 'lesson_4']);
-            $table->foreignId('user_id')->constrained();
+            $table->foreignId('teacher_id')->constrained();
             $table->foreignId('room_id')->constrained();
             $table->foreignId('subject_id')->constrained();
+            $table->foreignId('school_class_id')->constrained();
             $table->timestamps();
         });
     }
