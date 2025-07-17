@@ -37,4 +37,15 @@ class UserController extends Controller
         TimetableChange::create($validated);
         return response()->json(['message' => '変更を保存しました']);
     }
+
+    public function destroy($id)
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json(['message' => 'ユーザーが見つかりません'], 404);
+        }
+        $user->delete();
+        return response()->json(['message' => 'ユーザーを削除しました']);
+    }
 }

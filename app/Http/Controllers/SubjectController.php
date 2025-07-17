@@ -27,4 +27,17 @@ class SubjectController extends Controller
     Subject::create($validated);
     return response()->json(['message' => '変更を保存しました']);
     }
+
+    public function destroy($id)
+    {
+        $subject = Subject::find($id);
+
+        if (!$subject) {
+            return response()->json(['message' => '科目が見つかりません'], 404);
+        }
+
+        $subject->delete();
+
+        return response()->json(['message' => '科目を削除しました']);
+    }
 }
