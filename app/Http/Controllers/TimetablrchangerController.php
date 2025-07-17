@@ -35,4 +35,15 @@ class TimetablrchangerController extends Controller
     TimetableChange::create($validated);
     return response()->json(['message' => '変更を保存しました']);
     }
+
+    public function destroy($id)
+    {
+        $change = User::find($id);
+
+        if (!change) {
+            return response()->json(['message' => 'ユーザーが見つかりません'], 404);
+        }
+        $change->delete();
+        return response()->json(['message' => 'ユーザーを削除しました']);
+    }
 }
