@@ -9,10 +9,11 @@ class SchoolClass extends Model
     protected $fillable = ['grade', 'class'];
 
     public function users()
-    {
-        return $this->hasMany(User::class, 'school_class_grade', 'grade');
-        // 複合キー対応を含めるならカスタムが必要
-    }
+{
+    return $this->hasMany(User::class, 'school_class_grade', 'grade')
+                ->whereColumn('users.school_class_at', 'school_classes.class');
+}
+
 
     public function countSubjects()
     {
