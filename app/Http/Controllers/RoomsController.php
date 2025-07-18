@@ -7,7 +7,7 @@ use App\Models\Room;
 
 class RoomsController extends Controller
 {
-    // 教室一覧の取得
+    // 教室一覧の取得
     public function index(Request $request)
     {
         $rooms = Room::select([
@@ -18,7 +18,7 @@ class RoomsController extends Controller
         return response()->json($rooms);
     }
 
-    // 教室の新規登録
+    // 教室の新規登録
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -30,8 +30,7 @@ class RoomsController extends Controller
 
         return response()->json(['message' => '教室を登録しました']);
     }
-
-    // 教室の削除
+    // 教室の削除
     public function destroy($id)
     {
         $room = Room::find($id);

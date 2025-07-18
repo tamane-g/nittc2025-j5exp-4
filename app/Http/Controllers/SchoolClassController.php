@@ -29,7 +29,7 @@ class SchoolClassController extends Controller
         return response()->json(['message' => '学級を登録しました']);
     }
 
-    // 学級の削除
+    // 学級の削除
     public function destroy($id)
     {
         $class = SchoolClass::find($id);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\CountSubjectSchoolClass;
 
 class Count_subject_school_classesController extends Controller
 {
@@ -31,7 +32,7 @@ class Count_subject_school_classesController extends Controller
         return response()->json(['message' => 'データを登録しました']);
     }
 
-    // 削除処理
+    // 削除処理
     public function destroy($id)
     {
         $record = CountSubjectSchoolClass::find($id);

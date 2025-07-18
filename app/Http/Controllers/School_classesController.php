@@ -7,7 +7,7 @@ use App\Models\SchoolClass;
 
 class School_classesController extends Controller
 {
-    // 学級一覧を取得
+    // 学級一覧を取得
     public function index(Request $request)
     {
         $classes = SchoolClass::select([
@@ -19,7 +19,7 @@ class School_classesController extends Controller
         return response()->json($classes);
     }
 
-    // 学級を登録
+    // 学級を登録
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -32,7 +32,7 @@ class School_classesController extends Controller
         return response()->json(['message' => '学級を登録しました']);
     }
 
-    // 学級を削除
+    // 学級を削除
     public function destroy($id)
     {
         $schoolClass = SchoolClass::find($id);
