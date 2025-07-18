@@ -1,30 +1,36 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\Subject;
 
+use App\Models\Subject;
 use Illuminate\Http\Request;
 
 class SubjectController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $store_subject = Subject::select([
-            'id',
-            'name',
-        ])->get();
-
-        return response()->json($store_subject);
+        return response()->json(Subject::all());
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-        'id' => 'required',
-        'name' => 'required|string|max:20',
-    ]);
-    
-    Subject::create($validated);
-    return response()->json(['message' => '変更を保存しました']);
+            'name' => 'required|string|max:255|unique:subjects,name',
+        ]);
+
+        $subject = Subject::create($validated);
+
+        return response()->json([
+            'message' => '科目を登録しました',
+            'subject' => $subject,
+        ], 201);
+    }
+
+    public function destroy($id)
+    {
+        $subject = Subject::findOrFail($id);
+        $subject->delete();
+
+        return response()->json(['message' => '科目を削除しました']);
     }
 }

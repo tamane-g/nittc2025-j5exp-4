@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\TimetableChange;
+use Illuminate\Http\Request;
 
-class TimetablrchangerController extends Controller
+class TimetableChangeController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
         $changes = TimetableChange::with([
-            'user_id',
-            'before_date',
-            'before_timetable_id',
-            'after_date',
-            'after_timetable_id',
-            'approval',
+            'beforeTimetable.subject',
+            'beforeTimetable.room',
+            'beforeTimetable.user',
+            'afterTimetable.subject',
+            'afterTimetable.room',
+            'afterTimetable.user',
         ])->get();
 
         return response()->json($changes);
@@ -23,16 +23,21 @@ class TimetablrchangerController extends Controller
 
     public function store(Request $request)
     {
-    $validated = $request->validate([
-        'user_id' => 'required|exists:users,id',
-        'before_date' => 'required|date',
-        'after_date' => 'required|date',
-        'approval' => 'required|in:approved,rejected,pending',
-        'before_timetable_id' => 'required|exists:timetables,id',
-        'after_timetable_id' => 'required',
-    ]);
-    
-    TimetableChange::create($validated);
-    return response()->json(['message' => '変更を保存しました']);
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'before_date' => 'required|date',
+            'after_date' => 'required|date',
+            'before_timetable_id' => 'nullable|exists:timetables,id',
+            'after_timetable_id' => 'nullable|exists:timetables,id',
+            'approval' => 'required|in:approved,rejected,pending',
+            'description' => 'nullable|string',
+        ]);
+
+        $change = TimetableChange::create([
+            ...$validated,
+            'is_approved' => $validated['approval'] === 'approved',
+        ]);
+
+        return response()->json(['message' => '変更を保存しました', 'data' => $change]);
     }
 }

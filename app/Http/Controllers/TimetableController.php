@@ -2,40 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Timetable;
-use Carbon\Carbon;
+use Illuminate\Http\Request;
 
-class TimetableApiController extends Controller
+class TimetableController extends Controller
 {
-    public function getWeeklyTimetable(Request $request)
+    public function index(Request $request)
     {
-        $request->validate([
-            'user_id' => 'required|integer|exists:users,id',
-            'date' => 'required|date',
-        ]);
+        $baseDate = $request->query('week');
 
-        $userId = $request->input('user_id');
-        $date = Carbon::parse($request->input('date'));
+        if (!$baseDate) {
+            return response()->json(['error' => '週の開始日を指定してください（例: ?week=2025-07-14）'], 400);
+        }
 
-        // 月曜を週の始まりとして取得
-        $startOfWeek = $date->copy()->startOfWeek(Carbon::MONDAY);
-        $endOfWeek = $startOfWeek->copy()->addDays(4); // 月〜金
+        $weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
-        // データ取得
-        $timetables = Timetable::where('user_id', $userId)
-            ->whereBetween('day', ['Monday', 'Friday']) // 任意：曜日フィルタ
-            ->whereBetween('term', ['semester_1', 'semester_2']) // 任意：学期フィルタ
-            ->with(['subject', 'room', 'user'])
-            ->get();
+        $timetables = Timetable::with(['subject', 'room', 'user'])
+            ->whereIn('day', $weekdays)
+            ->get()
+            ->groupBy(['day', 'lesson']);
 
-        // 整形：曜日・コマごとに整理
-        $grouped = $timetables->groupBy(['day', 'lesson']);
-
-        return response()->json([
-            'start_of_week' => $startOfWeek->toDateString(),
-            'end_of_week' => $endOfWeek->toDateString(),
-            'timetable' => $grouped,
-        ]);
+        return response()->json($timetables);
     }
 }
