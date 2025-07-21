@@ -49,4 +49,9 @@ class Teacher extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    
+    public function timetables(): HasMany
+    {
+        return $this->hasMany(Timetable::class);
+    }
 }

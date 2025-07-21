@@ -11,16 +11,6 @@ class User extends Authenticatable
         'name', 'type', 'school_class_grade', 'school_class_at', 'email', 'password'
     ];
 
-    public function timetables(): HasMany
-    {
-        return $this->hasMany(Timetable::class);
-    }
-
-    public function timetableChanges(): HasMany
-    {
-        return $this->hasMany(TimetableChange::class);
-    }
-
     public function schoolClass()
     {
         return $this->belongsTo(SchoolClass::class, 'school_class_grade', 'grade');
