@@ -90,48 +90,4 @@ class UserController extends Controller
         // 4. 成功メッセージと共にリダイレクト
         return Redirect::route('regist')->with('success', 'ユーザーをCSVからインポートしました。');
     }
-
-    /**
-     * CSVファイルからユーザーをインポートする
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function import(Request $request)
-    {
-        // 1. バリデーション
-        $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt'
-        ]);
-
-        try {
-            // 2. CSVファイルの取得と読み込み
-            $file = $request->file('csv_file');
-            // 'r'は読み込みモード
-            $csv = Reader::createFromPath($file->getPathname(), 'r');
-            // ヘッダー行をキーとして使用する
-            $csv->setHeaderOffset(0);
-
-            $records = $csv->getRecords(['name', 'email', 'type', 'password']);
-
-            // 3. データベースへの登録（トランザクション使用）
-            DB::transaction(function () use ($records) {
-                foreach ($records as $record) {
-                    User::create([
-                        'name' => $record['name'],
-                        'email' => $record['email'],
-                        'password' => Hash::make($record['password']),
-                    ]);
-                }
-            });
-
-        } catch (Exception $e) {
-            // エラーが発生した場合はエラーメッセージを返す
-            return Redirect::route('regist')
-                ->with('error', 'CSVのインポートに失敗しました。ファイル形式を確認してください。エラー: ' . $e->getMessage());
-        }
-
-        // 4. 成功メッセージと共にリダイレクト
-        return Redirect::route('regist')->with('success', 'ユーザーをCSVからインポートしました。');
-    }
 }
