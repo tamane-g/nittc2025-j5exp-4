@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('rooms', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 20);
+            $table->string('name', 20)->unique(); // ★ unique() 制約を追加
             $table->boolean('is_concurrent');
             $table->timestamps();
         });
