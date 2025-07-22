@@ -6,48 +6,53 @@ use App\Models\Timetable; // Timetable モデルを使用するため追加
 use App\Models\TimetableChange;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect; // Redirect のために追加
 use Illuminate\Validation\ValidationException; // ValidationException を使用するため追加
 use Illuminate\Validation\Rule; // Rule クラスを使用するため追加
+use Inertia\Inertia; // Inertia.js のレンダリングのため追加
+use Inertia\Response; // Inertia.js のレスポンス型ヒントのため追加
 
 class TimetableChangeController extends Controller
 {
     /**
-     * 時間割変更申請の一覧を取得します。
+     * 時間割変更申請の一覧を取得し、Inertia.js コンポーネントで表示します。
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Inertia\Response
      */
-    public function index()
+    public function index(): Response
     {
         // 関連するモデル（teacher, room, schoolClass, beforeTimetable, afterTimetable）も同時に読み込む
         $changes = TimetableChange::with([
-            'teacher', // user から teacher に変更
-            'room', // 追加
-            'schoolClass', // 追加
+            'teacher',
+            'room',
+            'schoolClass',
             'beforeTimetable',
             'afterTimetable'
         ])->latest()->get();
 
-        return response()->json($changes);
+        // 'TimetableChanges/Index' はフロントエンドのVue/Reactコンポーネントのパスを想定
+        return Inertia::render('TimetableChanges/Index', [
+            'changes' => $changes,
+        ]);
     }
 
     /**
-     * 新しい時間割変更申請を保存します。
+     * 新しい時間割変更申請を保存し、完了後にリダイレクトします。
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
-            'teacher_id' => 'required|exists:users,id', // user_id から teacher_id に変更
+            'teacher_id' => 'required|exists:users,id',
             'before_date' => 'required|date',
             'before_timetable_id' => 'nullable|exists:timetables,id',
             'after_date' => 'required|date',
             'after_timetable_id' => 'required|exists:timetables,id',
-            'room_id' => 'required|exists:rooms,id', // 追加
-            'school_class_id' => 'required|exists:school_classes,id', // 追加
-            // 'approval' はマイグレーションで default(false) を設定しているため、ここでは不要
+            'room_id' => 'required|exists:rooms,id',
+            'school_class_id' => 'required|exists:school_classes,id',
         ]);
 
         // 提案された変更後の時間割エントリを取得
@@ -67,39 +72,39 @@ class TimetableChangeController extends Controller
 
         $change = TimetableChange::create($validated);
 
-        return response()->json([
-            'message' => '時間割変更申請を登録しました。',
-            'change' => $change,
-        ], 201);
+        // 時間割変更申請一覧ページにリダイレクトし、成功メッセージをフラッシュ
+        return Redirect::route('timetable-changes.index')->with('success', '時間割変更申請を登録しました。');
     }
 
     /**
-     * 特定の時間割変更申請の詳細を取得します。
+     * 特定の時間割変更申請の詳細をInertia.js コンポーネントで表示します。
      *
      * @param  \App\Models\TimetableChange  $timetableChange
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Inertia\Response
      */
-    public function show(TimetableChange $timetableChange)
+    public function show(TimetableChange $timetableChange): Response
     {
         // 指定されたIDの申請データをリレーションと共に読み込む
-        return response()->json($timetableChange->load([
-            'teacher', // user から teacher に変更
-            'room', // 追加
-            'schoolClass', // 追加
-            'beforeTimetable',
-            'afterTimetable'
-        ]));
+        return Inertia::render('TimetableChanges/Show', [ // 'TimetableChanges/Show' はフロントエンドのVue/Reactコンポーネントのパスを想定
+            'timetableChange' => $timetableChange->load([
+                'teacher',
+                'room',
+                'schoolClass',
+                'beforeTimetable',
+                'afterTimetable'
+            ]),
+        ]);
     }
 
     /**
-     * 時間割変更申請を更新します。
+     * 時間割変更申請を更新し、完了後にリダイレクトします。
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\TimetableChange  $timetableChange
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function update(Request $request, TimetableChange $timetableChange)
+    public function update(Request $request, TimetableChange $timetableChange): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
             'teacher_id' => 'sometimes|exists:users,id',
@@ -109,7 +114,7 @@ class TimetableChangeController extends Controller
             'after_timetable_id' => 'sometimes|exists:timetables,id',
             'room_id' => 'sometimes|exists:rooms,id',
             'school_class_id' => 'sometimes|exists:school_classes,id',
-            'approval' => 'sometimes|boolean', // is_approved から approval に変更
+            'approval' => 'sometimes|boolean',
         ]);
 
         // 更新後の after_timetable_id がリクエストに含まれている場合は、その時間割エントリを取得
@@ -118,58 +123,63 @@ class TimetableChangeController extends Controller
         $afterTimetableEntry = Timetable::findOrFail($afterTimetableEntryId);
 
         // 重複チェックの実行 (更新時は自身のIDを除外)
-        $this->checkOverlap(
-            $timetableChange->id, // 更新対象のID
-            $validated['after_date'] ?? $timetableChange->after_date,
-            $afterTimetableEntry->day,
-            $afterTimetableEntry->lesson,
-            $afterTimetableEntry->term,
-            $validated['teacher_id'] ?? $timetableChange->teacher_id,
-            $validated['room_id'] ?? $timetableChange->room_id,
-            $validated['school_class_id'] ?? $timetableChange->school_class_id
-        );
+        try {
+            $this->checkOverlap(
+                $timetableChange->id, // 更新対象のID
+                $validated['after_date'] ?? $timetableChange->after_date,
+                $afterTimetableEntry->day,
+                $afterTimetableEntry->lesson,
+                $afterTimetableEntry->term,
+                $validated['teacher_id'] ?? $timetableChange->teacher_id,
+                $validated['room_id'] ?? $timetableChange->room_id,
+                $validated['school_class_id'] ?? $timetableChange->school_class_id
+            );
+        } catch (ValidationException $e) {
+            // 重複エラーが発生した場合、エラーメッセージと共にリダイレクト
+            return Redirect::route('timetable-changes.index')
+                ->with('error', '時間割変更の更新中に重複エラーが発生しました。')
+                ->withErrors($e->errors()); // バリデーションエラーの詳細を渡す
+        }
+
 
         $timetableChange->update($validated);
 
-        return response()->json([
-            'message' => '時間割変更申請を更新しました。',
-            'change' => $timetableChange,
-        ]);
+        // 時間割変更申請一覧ページにリダイレクトし、成功メッセージをフラッシュ
+        return Redirect::route('timetable-changes.index')->with('success', '時間割変更申請を更新しました。');
     }
 
     /**
-     * 時間割変更申請を承認または拒否します。
+     * 時間割変更申請を承認または拒否し、完了後にリダイレクトします。
      * (このメソッドは承認状態のみを更新するため、重複チェックは不要)
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\TimetableChange  $timetableChange
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function updateApproval(Request $request, TimetableChange $timetableChange)
+    public function updateApproval(Request $request, TimetableChange $timetableChange): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
-            'approval' => 'required|boolean', // is_approved から approval に変更
+            'approval' => 'required|boolean',
         ]);
 
         $timetableChange->update($validated);
 
-        return response()->json([
-            'message' => '時間割変更申請の承認状態を更新しました。',
-            'change' => $timetableChange,
-        ]);
+        // 時間割変更申請一覧ページにリダイレクトし、成功メッセージをフラッシュ
+        return Redirect::route('timetable-changes.index')->with('success', '時間割変更申請の承認状態を更新しました。');
     }
 
     /**
-     * 時間割変更申請を削除します。
+     * 時間割変更申請を削除し、完了後にリダイレクトします。
      *
      * @param  \App\Models\TimetableChange  $timetableChange
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function destroy(TimetableChange $timetableChange)
+    public function destroy(TimetableChange $timetableChange): \Illuminate\Http\RedirectResponse
     {
         $timetableChange->delete();
 
-        return response()->json(['message' => '時間割変更申請を削除しました。'], 200); // 200 OK ステータスでメッセージを返す
+        // 時間割変更申請一覧ページにリダイレクトし、成功メッセージをフラッシュ
+        return Redirect::route('timetable-changes.index')->with('success', '時間割変更申請を削除しました。');
     }
 
     /**
@@ -199,13 +209,13 @@ class TimetableChangeController extends Controller
         $query = TimetableChange::where('after_date', $afterDate)
             ->whereHas('afterTimetable', function ($query) use ($day, $lesson, $term) {
                 $query->where('day', $day)
-                      ->where('lesson', $lesson)
-                      ->where('term', $term);
+                    ->where('lesson', $lesson)
+                    ->where('term', $term);
             })
             // 承認済みまたは申請中の変更のみを対象とする
             ->where(function ($query) {
                 $query->where('approval', true) // 承認済み
-                      ->orWhere('approval', false); // 申請中
+                    ->orWhere('approval', false); // 申請中 (承認待ちも含む)
             });
 
         // 更新の場合、自分自身のレコードは重複チェックから除外
