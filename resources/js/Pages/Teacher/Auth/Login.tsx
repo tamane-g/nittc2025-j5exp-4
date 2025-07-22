@@ -21,7 +21,7 @@ interface LoginProps {
 }
 
 // コンポーネント名をLoginStudentに変更
-export default function LoginStudent({ status, canResetPassword }: LoginProps) {
+export default function LoginTeacher({ status, canResetPassword }: LoginProps) {
   const { t } = useTranslation();
 
   const { data, setData, post, processing, errors, reset } = useForm({
@@ -95,16 +95,16 @@ export default function LoginStudent({ status, canResetPassword }: LoginProps) {
                 <Group className="bottom-left-buttons">
                     {/* ▼▼▼ ここから修正 ▼▼▼ */}
                     {/* 現在のページなので非活性にするか、スタイルを変えるとより親切です */}
-                    <Button component="span" variant="outline" radius="xs" className="link-button" disabled>
-                    生徒
-                    </Button>
-                    
                     {/* InertiaのLinkコンポーネントを使用してページ遷移 */}
-                    <Link href="/teacher/login" as="button">
+                    <Link href="/student/login" as="button">
                         <Button variant="outline" radius="xs" className="link-button">
-                            教師
+                            生徒
                         </Button>
                     </Link>
+
+                    <Button component="span" variant="outline" radius="xs" className="link-button" disabled>
+                    教師
+                    </Button>
                     
                     <Link href="/admin/login" as="button">
                         <Button variant="outline" radius="xs" className="link-button">
