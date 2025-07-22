@@ -25,3 +25,9 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+Route::prefix('teacher')->name('teacher.')->group(function(){
+    require __DIR__.'/teacher.php';
+});
+Route::prefix('admin')->name('admin.')->group(function(){
+    require __DIR__.'/admin.php';
+});
