@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Redirect; // Redirect のために追加
 use Illuminate\Validation\Rule; // Rule クラスを使用するため追加
 use Inertia\Inertia; // Inertia.js のレンダリングのため追加
 use Inertia\Response; // Inertia.js のレスポンス型ヒントのため追加
+use Illuminate\Http\RedirectResponse; // RedirectResponse 型ヒントのため追加
 
 class SchoolClassController extends Controller
 {

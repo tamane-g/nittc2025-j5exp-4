@@ -10,11 +10,11 @@ use Illuminate\Validation\Rule; // Rule クラスを使用するため追加
 use Inertia\Inertia; // Inertia.js のレンダリングのため追加
 use Inertia\Response; // Inertia.js のレスポンス型ヒントのため追加
 
-
 class TimetableController extends Controller
 {
     /**
-     * 時間割テンプレートデータを取得し、Inertia.js コンポーネントで表示します。
+     * 時間割テンプレートデータの一覧を取得し、Inertia.js コンポーネントで表示します。
+     * (このメソッドは、もし /timetables のようなリソースルートがある場合に使用されます)
      *
      * @param Request $request
      * @return \Inertia\Response
@@ -38,6 +38,7 @@ class TimetableController extends Controller
 
     /**
      * 新しい時間割エントリを保存し、完了後にリダイレクトします。
+     * (このメソッドは、もし /timetables のようなリソースルートがある場合に使用されます)
      *
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
@@ -61,7 +62,23 @@ class TimetableController extends Controller
     }
 
     /**
+     * 指定された時間割エントリの詳細をInertia.js コンポーネントで表示します。
+     * routes/web.php の Route::get('/timetable', ...) に対応 (timetable.view)
+     *
+     * @param  \App\Models\Timetable  $timetable // ルートモデルバインディングを使用
+     * @return \Inertia\Response
+     */
+    public function show(Timetable $timetable): Response
+    {
+        // 関連するモデルをロードしてフロントエンドに渡す
+        return Inertia::render('Timetables/Show', [ // 'Timetables/Show' はフロントエンドのVue/Reactコンポーネントのパスを想定
+            'timetable' => $timetable->load(['subject', 'room', 'teacher', 'schoolClass']),
+        ]);
+    }
+
+    /**
      * 指定された時間割エントリを更新し、完了後にリダイレクトします。
+     * (このメソッドは、もし /timetables のようなリソースルートがある場合に使用されます)
      *
      * @param Request $request
      * @param int $id
@@ -103,6 +120,7 @@ class TimetableController extends Controller
 
     /**
      * 指定された時間割エントリを削除し、完了後にリダイレクトします。
+     * (このメソッドは、もし /timetables のようなリソースルートがある場合に使用されます)
      *
      * @param int $id
      * @return \Illuminate\Http\RedirectResponse
