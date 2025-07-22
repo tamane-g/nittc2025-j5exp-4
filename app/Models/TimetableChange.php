@@ -6,5 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class TimetableChange extends Model
 {
-    //
+    protected $fillable = [
+        'user_id', 'before_date', 'before_timetable_id',
+        'after_date', 'after_timetable_id', 'is_approved'
+    ];
+
+    public function teacher()
+    {
+        return $this->belongsTo(Teacher::class);
+    }
+
+    public function beforeTimetable()
+    {
+        return $this->belongsTo(Timetable::class, 'before_timetable_id');
+    }
+
+    public function afterTimetable()
+    {
+        return $this->belongsTo(Timetable::class, 'after_timetable_id');
+    }
 }
