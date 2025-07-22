@@ -16,21 +16,25 @@ class Timetable extends Model
         'term',
         'day',
         'lesson',
-        'teacher_id', // ★ ここを修正: user_id から teacher_id に変更
+        'teacher_id',
         'room_id',
         'subject_id',
         'school_class_id',
     ];
 
-    public function teacher()
+    /**
+     * Get the teacher (User) that owns the timetable entry.
+     */
+    public function teacher(): BelongsTo
     {
-        return $this->belongsTo(Teacher::class);
+        // teacher_id が users テーブルの id を参照している場合
+        return $this->belongsTo(User::class, 'teacher_id');
     }
 
     /**
      * Get the subject that owns the timetable entry.
      */
-    public function subject(): BelongsTo // 型ヒントを追加
+    public function subject(): BelongsTo
     {
         return $this->belongsTo(Subject::class);
     }
@@ -38,7 +42,7 @@ class Timetable extends Model
     /**
      * Get the room that owns the timetable entry.
      */
-    public function room(): BelongsTo // 型ヒントを追加
+    public function room(): BelongsTo
     {
         return $this->belongsTo(Room::class);
     }
@@ -46,7 +50,7 @@ class Timetable extends Model
     /**
      * Get the school class that owns the timetable entry.
      */
-    public function schoolClass(): BelongsTo // ★ 追加: schoolClass リレーション
+    public function schoolClass(): BelongsTo
     {
         return $this->belongsTo(SchoolClass::class);
     }

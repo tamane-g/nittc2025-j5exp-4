@@ -13,11 +13,18 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name', 'school_class_id', 'email', 'password'
+        'name',
+        'email', // email も $fillable に追加
+        'password',
+        'school_class_id', // school_class_id は既にありますが、念のため
     ];
 
-    public function schoolClass()
+    /**
+     * Get the school class that the user belongs to.
+     */
+    public function schoolClass(): BelongsTo // ★ 型ヒントを追加
     {
-        return $this->belongsTo(SchoolClass::class, 'school_class_grade', 'grade');
+        // users テーブルの school_class_id が school_classes テーブルの id を参照する
+        return $this->belongsTo(SchoolClass::class, 'school_class_id', 'id');
     }
 }

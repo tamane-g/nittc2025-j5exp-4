@@ -13,22 +13,26 @@ return new class extends Migration
     {
         Schema::create('timetable_changes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('teacher_id')->constrained();
-            
+            // 変更を申請した教師への外部キー。
+            // 教師が削除された場合に、関連する変更履歴を残すため 'restrict' を推奨。
+            $table->foreignId('teacher_id')->constrained()->onDelete('restrict');
+
             $table->date('before_date');
+            // 変更前の時間割エントリへの参照。
+            // 参照先の時間割が削除されたら、変更履歴も削除。
             $table->foreignId('before_timetable_id')
                   ->constrained('timetables')
                   ->cascadeOnDelete();
-            
+
             $table->date('after_date');
+            // 変更後の時間割エントリへの参照。
+            // 参照先の時間割が削除されたら、変更履歴も削除。
             $table->foreignId('after_timetable_id')
                   ->constrained('timetables')
-                  ->cascadeonDelete();
-            
-            $table->foreignId('room_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('school_class_id')->constrained()->cascadeOnDelete();
-            
-            $table->boolean('approval');
+                  ->cascadeOnDelete();
+
+            $table->boolean('approval'); // 変更の承認状態
+
             $table->timestamps();
         });
     }
