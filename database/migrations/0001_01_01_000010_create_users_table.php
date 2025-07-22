@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->enum('type', ['student', 'teacher', 'administrator']);
             $table->foreignId('school_class_id')->constrained();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();

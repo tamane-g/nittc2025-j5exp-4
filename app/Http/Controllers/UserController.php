@@ -18,7 +18,6 @@ class UserController extends Controller
             'name',
             'email',
             'password',
-            'type',
             'school_class_grade',
             'school_class_class',
             'email_verified_at',
@@ -36,10 +35,7 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             // 8文字以上であることを確認
             'password' => 'required|string|min:8',
-            // 'student', 'teacher', 'administrator' のいずれかであることを確認
-            'type' => 'required|in:student,teacher,administrator',
-            'school_class_grade' => 'nullable|integer', // typeによっては不要な場合を想定しnullable
-            'school_class_class' => 'nullable|integer', // typeによっては不要な場合を想定しnullable
+            'school_class_id' => 'required|exists:school_classes,id',
         ]);
 
         // 2. パスワードをハッシュ化して$validatedに追加（または上書き）
@@ -92,7 +88,6 @@ class UserController extends Controller
                     User::create([
                         'name' => $record['name'],
                         'email' => $record['email'],
-                        'type' => $record['type']
                         'password' => Hash::make($record['password']),
                     ]);
                 }

@@ -11,9 +11,9 @@ class TimetableChange extends Model
         'after_date', 'after_timetable_id', 'is_approved'
     ];
 
-    public function user()
+    public function teacher()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Teacher::class);
     }
 
     public function beforeTimetable()

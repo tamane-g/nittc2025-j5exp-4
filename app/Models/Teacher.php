@@ -21,9 +21,6 @@ class Teacher extends Authenticatable
         'name',
         'email',
         'password',
-        'type',
-        'school_class_grade',
-        'school_class_class',
         'email_verified_at',
     ];
 
@@ -50,8 +47,13 @@ class Teacher extends Authenticatable
         ];
     }
     
-    public function timetables(): HasMany
+    public function timetables()
     {
         return $this->hasMany(Timetable::class);
+    }
+    
+    public function timetableChanges()
+    {
+        return $this->hasMany(TimetableChange::class);
     }
 }

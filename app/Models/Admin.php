@@ -21,9 +21,6 @@ class Admin extends Authenticatable
         'name',
         'email',
         'password',
-        'type',
-        'school_class_grade',
-        'school_class_class',
         'email_verified_at',
     ];
 

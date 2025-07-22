@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class User extends Authenticatable
 {
     protected $fillable = [
-        'name', 'type', 'school_class_grade', 'school_class_at', 'email', 'password'
+        'name', 'school_class_id', 'email', 'password'
     ];
 
     public function schoolClass()

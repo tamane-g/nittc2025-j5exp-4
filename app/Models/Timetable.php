@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Timetable extends Model
 {
-    public function user()
+    public function teacher()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Teacher::class);
     }
 
     public function subject()

@@ -14,9 +14,10 @@ class TimetableController extends Controller
             'term',
             'day',
             'lesson',
-            'user_id',
+            'teacher_id',
             'room_id',
             'subject_id',
+            'school_class_id',
         ])->get();
 
         return response()->json($view);
@@ -27,9 +28,10 @@ class TimetableController extends Controller
             'term' => 'required|in:semester_1,semester_2,full_year',
             'day' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday',
             'lesson' => 'required|integer|min:1|max:10',
-            'user_id' => 'required|exists:users,id',
+            'teacher_id' => 'required|exists:teachers,id',
             'room_id' => 'required|exists:rooms,id',
             'subject_id' => 'required|exists:subjects,id',
+            'school_class_id' => 'required|exists:school_classes,id',
         ]);
 
         Timetable::create($validated);
