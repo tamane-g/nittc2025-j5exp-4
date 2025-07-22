@@ -27,6 +27,15 @@ return new class extends Migration
                   
             $table->boolean('approval');
             $table->timestamps();
+
+            $table->foreign(['class_room_id'])
+                  ->references(['id'])
+                  ->on('class_rooms')
+                  ->cascadeOnDelete();
+            $table->foreign(['class_room_id'])
+                  ->references(['id'])
+                  ->on('class_rooms')
+                  ->cascadeOnDelete();
         });
     }
 
