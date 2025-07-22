@@ -4,80 +4,84 @@ namespace App\Http\Controllers;
 
 use App\Models\Subject;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect; // Redirect のために追加
 use Illuminate\Validation\Rule; // Rule クラスを使用するため追加
+use Inertia\Inertia; // Inertia.js のレンダリングのため追加
+use Inertia\Response; // Inertia.js のレスポンス型ヒントのため追加
 
 class SubjectController extends Controller
 {
     /**
-     * 科目の一覧を取得します。
+     * 科目の一覧を取得し、Inertia.js コンポーネントで表示します。
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Inertia\Response
      */
-    public function index()
+    public function index(): Response
     {
-        return response()->json(Subject::all());
+        $subjects = Subject::all();
+
+        // 'Subjects/Index' はフロントエンドのVue/Reactコンポーネントのパスを想定
+        return Inertia::render('Subjects/Index', [
+            'subjects' => $subjects,
+        ]);
     }
 
     /**
-     * 新しい科目を保存します。
+     * 新しい科目を保存し、完了後にリダイレクトします。
      *
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:20|unique:subjects,name', // ★ max:255 を max:20 に修正
+            'name' => 'required|string|max:20|unique:subjects,name',
         ]);
 
         $subject = Subject::create($validated);
 
-        return response()->json([
-            'message' => '科目を登録しました',
-            'subject' => $subject,
-        ], 201);
+        // 科目一覧ページにリダイレクトし、成功メッセージをフラッシュ
+        return Redirect::route('subjects.index')->with('success', '科目を登録しました。');
     }
 
     /**
-     * 指定された科目を更新します。
+     * 指定された科目を更新し、完了後にリダイレクトします。
      *
      * @param Request $request
      * @param int $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(Request $request, int $id)
+    public function update(Request $request, int $id): \Illuminate\Http\RedirectResponse
     {
         $subject = Subject::findOrFail($id);
 
         $validated = $request->validate([
-            // 更新時は自分自身の名前はユニークチェックから除外
             'name' => [
-                'sometimes', // リクエストに含まれていればバリデーション
+                'sometimes',
                 'string',
-                'max:20', // ★ max:255 を max:20 に修正
+                'max:20',
                 Rule::unique('subjects')->ignore($subject->id),
             ],
         ]);
 
         $subject->update($validated);
 
-        return response()->json([
-            'message' => '科目を更新しました',
-            'subject' => $subject,
-        ]);
+        // 科目一覧ページにリダイレクトし、成功メッセージをフラッシュ
+        return Redirect::route('subjects.index')->with('success', '科目を更新しました。');
     }
 
     /**
-     * 指定された科目を削除します。
+     * 指定された科目を削除し、完了後にリダイレクトします。
      *
      * @param int $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function destroy(int $id)
+    public function destroy(int $id): \Illuminate\Http\RedirectResponse
     {
         $subject = Subject::findOrFail($id);
         $subject->delete();
 
-        return response()->json(['message' => '科目を削除しました']);
+        // 科目一覧ページにリダイレクトし、成功メッセージをフラッシュ
+        return Redirect::route('subjects.index')->with('success', '科目を削除しました。');
     }
 }
