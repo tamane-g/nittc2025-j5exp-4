@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Http\Controllers;
+
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use App\Models\Timetable;
