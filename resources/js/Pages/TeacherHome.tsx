@@ -2,12 +2,11 @@
 
 import React from 'react';
 import { Box, Button } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Link } from '@inertiajs/react';
 
 export default function TeacherHome() {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
 
   const buttonConfigs = [
     { label: t('TeacherHome.timetable'), path: '/timetable' },
@@ -48,13 +47,14 @@ export default function TeacherHome() {
         {buttonConfigs.map((btn, index) => (
           <Button
             key={index}
+            component={Link}
+            href={btn.path}
             variant="filled"
             radius="lg"
             onClick={() => {
               if (btn.label === t('TeacherHome.logout')) {
                 i18n.changeLanguage('ja');
               }
-              navigate(btn.path);
             }}
             className="home-button"
             style={{

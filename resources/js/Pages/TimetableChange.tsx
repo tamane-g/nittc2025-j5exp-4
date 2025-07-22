@@ -1,11 +1,12 @@
 // TimetableChange.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@mantine/core';
 import { NativeSelect } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useForm } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-
+import axios from 'axios';
+import { Link } from '@inertiajs/react';
 
 
 function getStartOfWeek(date: Date) {
@@ -22,15 +23,41 @@ function formatDate(date: Date, t: (key: string) => string) {
 
 export default function TimetableChange() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const location = useLocation();
   const [clickedMessage] = useState('');
   const [currentMonday, setCurrentMonday] = useState(getStartOfWeek(new Date()));
+  const [beforeTimetable, setBeforeTimetable] = useState({ subject: { name: '' }, room: { name: '' }, user: { name: '' } });
+  const [afterTimetable, setAfterTimetable] = useState({ subject: { name: '' }, room: { name: '' }, user: { name: '' } });
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data, setData, post } = useForm({
     subjectAfterChange: '',
     locationAfterChange: '',
+    id: location.state?.id || '', // Initialize with ID from location state
+    approval: false, // Default approval status
+    description: '', // Default description
   });
+
+  useEffect(() => {
+    const fetchChangeRequest = async () => {
+      const changeRequestId = location.state?.id; // Assuming ID is passed via state
+      if (changeRequestId) {
+        try {
+          const response = await axios.get(`/change`, { params: { id: changeRequestId } });
+          const { before_timetable, after_timetable } = response.data;
+          setBeforeTimetable(before_timetable);
+          setAfterTimetable(after_timetable);
+          setData(prevData => ({
+            ...prevData,
+            subjectAfterChange: after_timetable.subject.name,
+            locationAfterChange: after_timetable.room.name,
+          }));
+        } catch (error) {
+          console.error("Error fetching change request:", error);
+        }
+      }
+    };
+    fetchChangeRequest();
+  }, [location.state?.id, setData]);
 
   const changeWeek = (offset: number) => {
     const newMonday = new Date(currentMonday);
@@ -40,7 +67,7 @@ export default function TimetableChange() {
 
   const handleSubmit = () => {
     // APIへの送信処理
-    // post('/api/timetable-change', data);
+    post('/change');
     console.log('Form data submitted:', data);
     navigate(-1);
   };
@@ -73,7 +100,7 @@ export default function TimetableChange() {
       <div className="row-container">
         <div className="split-box">
           <div className="left-half">{t('TimetableChange.beforeChange')}</div>
-          <div className="right-half">{t('TimetableChange.japanese')}</div>
+          <div className="right-half">{beforeTimetable.subject.name} ({beforeTimetable.user.name}先生) - {beforeTimetable.room.name}</div>
         </div>
         <div className="select-box">
           <div className="left-select">{t('TimetableChange.afterChange')}</div>
@@ -106,11 +133,11 @@ export default function TimetableChange() {
       <div className="row-container">
         <div className="split-box">
           <div className="left-half">{t('TimetableChange.replacer')}</div>
-          <div className="right-half">{t('TimetableChange.replacerName')}</div>
+          <div className="right-half">{beforeTimetable.user.name}</div>
         </div>
         <div className="right-box">
           <div className="left-half">{t('TimetableChange.applicant')}</div>
-          <div className="right-half">{t('TimetableChange.applicantName')}</div>
+          <div className="right-half">{afterTimetable.user.name}</div>
         </div>
       </div>
 
@@ -143,7 +170,7 @@ export default function TimetableChange() {
 
 
       <div className="back-button-container">
-        <Button variant="filled" size="xl" onClick={() => navigate(-1)} style={{ width: '150px' }}>{t('back')}</Button>
+        <Button component={Link} href={'/'} variant="filled" size="xl" style={{ width: '150px' }}>{t('back')}</Button>
       </div>
 
       <div className="send-button-container">

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Box,
   Button,
@@ -8,15 +8,34 @@ import {
   Select,
 } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { Link } from '@inertiajs/react';
 
 export default function Language() {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
 
-  const handleLanguageChange = (value: string | null) => {
+  useEffect(() => {
+    const fetchLanguage = async () => {
+      try {
+        const response = await axios.get('/language');
+        if (response.data && response.data.user && response.data.user.language) {
+          i18n.changeLanguage(response.data.user.language);
+        }
+      } catch (error) {
+        console.error("Error fetching language:", error);
+      }
+    };
+    fetchLanguage();
+  }, [i18n]);
+
+  const handleLanguageChange = async (value: string | null) => {
     if (value) {
-      i18n.changeLanguage(value);
+      try {
+        await axios.post('/language', { language: value });
+        i18n.changeLanguage(value);
+      } catch (error) {
+        console.error("Error updating language:", error);
+      }
     }
   };
 
@@ -42,7 +61,7 @@ export default function Language() {
         </Stack>
 
         <Group className="language-buttons">
-          <Button variant="filled" radius="xs" onClick={() => navigate(-1)} className="back-button">
+          <Button component={Link} href={'/'} variant="filled" radius="xs" className="back-button">
             {t('back')}
           </Button>
         </Group>

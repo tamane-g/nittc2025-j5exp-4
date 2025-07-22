@@ -1,17 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Table } from '@mantine/core';
 import { Button } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios'; // Import axios for API calls
+import { usePage } from '@inertiajs/react'; // To get user data from Inertia.js props
+import { Link } from '@inertiajs/react';
 
+interface UserProps {
+  user?: {
+    id?: string;
+  };
+  [key: string]: any; // Allow other properties
+}
 
-const tableData = [
-  [1, '', '', '', '', ''],
-  [2, '', '', '', '', ''],
-  [3, '', '', '', '', ''],
-  [4, '', '', '', '', ''],
-];
+interface Subject {
+  name: string;
+}
 
+interface Room {
+  name: string;
+}
+
+interface TimetableUser {
+  name: string;
+}
+
+interface TimetableEntry {
+  subject: Subject;
+  user: TimetableUser;
+  room: Room;
+}
 
 function getStartOfWeek(date: Date) {
   const d = new Date(date);
@@ -28,11 +46,58 @@ function formatDate(date: Date, t: (key: string) => string) {
 
 export default function Timetable() {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
-  const [data] = useState(tableData);
+  const [timetableData, setTimetableData] = useState<TimetableEntry[][]>([]); // State to store fetched timetable data as a 2D array
   const [currentMonday, setCurrentMonday] = useState(getStartOfWeek(new Date()));
+  const { props } = usePage<UserProps>(); // Get page props from Inertia.js
 
   const isEnglish = i18n.language === 'en';
+
+  const fetchTimetable = useCallback(async () => {
+    try {
+      const formattedDate = currentMonday.toISOString().split('T')[0]; // YYYY-MM-DD format
+      const userId = props.user?.id; // Assuming user ID is available in props.user.id
+
+      if (!userId) {
+        console.warn("User ID not found. Cannot fetch timetable.");
+        return;
+      }
+
+      const response = await axios.get('/timetable', {
+        params: {
+          first_date: formattedDate,
+          user: userId,
+        },
+      });
+
+      // Assuming response.data.timetable is an array of objects like:
+      // { day: string, period: number, subject: { name: string }, user: { name: string }, room: { name: string } }
+      const fetchedTimetable = response.data.timetable; // This should be an array of timetable entries
+
+      // Initialize a 2D array for the table (e.g., 4 periods x 5 days + 1 for period numbers)
+      const newTimetableData: (TimetableEntry | string)[][] = Array(4).fill(null).map((_, periodIndex) => {
+        const row: (TimetableEntry | string)[] = Array(6).fill('');
+        row[0] = `${periodIndex + 1}`; // Period number
+        return row;
+      });
+
+      // Populate the 2D array with fetched data
+      fetchedTimetable.forEach((entry: TimetableEntry & { day: string, period: number }) => {
+        const dayIndex = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].indexOf(entry.day.toLowerCase());
+        if (dayIndex !== -1 && entry.period >= 1 && entry.period <= 4) {
+          newTimetableData[entry.period - 1][dayIndex + 1] = entry;
+        }
+      });
+
+      setTimetableData(newTimetableData as TimetableEntry[][]);
+    } catch (error) {
+      console.error("Error fetching timetable:", error);
+      // Handle error, e.g., display an error message to the user
+    }
+  }, [currentMonday, props.user?.id]);
+
+  useEffect(() => {
+    fetchTimetable();
+  }, [currentMonday, props.user?.id, fetchTimetable]); // Refetch when week changes or user ID becomes available
 
   const changeWeek = (offset: number) => {
     const newMonday = new Date(currentMonday);
@@ -60,7 +125,7 @@ export default function Timetable() {
       </div>
 
       <div className="back-button-container">
-        <Button variant="filled" size="xl" onClick={() => navigate(-1)} style={{ width: '150px' }}>{t('back')}</Button>
+        <Button component={Link} href={'/'} variant="filled" size="xl" style={{ width: '150px' }}>{t('back')}</Button>
       </div>
 
       <style>{`
@@ -224,7 +289,7 @@ export default function Timetable() {
         </Table.Thead>
 
         <Table.Tbody>
-          {data.map((row, rowIndex) => (
+          {timetableData.map((row, rowIndex) => (
             <Table.Tr
               key={rowIndex}
               className="ag-row"
@@ -249,9 +314,10 @@ export default function Timetable() {
                             : ''
                       }`}
                     col-id={isLeftColumn ? 'idColumn' : `col${colIndex}`}
-                    style={{ cursor: 'default' }}
+                    style={{ cursor: 'default', whiteSpace: 'pre-wrap' }} // Allow text wrapping
                   >
-                    {cell}
+                    {typeof cell === 'string' ? cell : 
+                      cell ? `${cell.subject.name}\n${cell.user.name}先生\n${cell.room.name}` : ''}
                   </Table.Td>
                 );
               })}

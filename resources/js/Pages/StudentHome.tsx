@@ -2,12 +2,11 @@
 
 import React from 'react';
 import { Box, Button } from '@mantine/core';
-import { useNavigate } from 'react-router-dom'; // ← 追加
 import { useTranslation } from 'react-i18next';
+import { Link } from '@inertiajs/react';
 
 export default function StudentHome() {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate(); // ← 追加
 
   const buttonData = [
     { label: t('StudentHome.timetable'), path: '/timetable' },
@@ -46,6 +45,8 @@ export default function StudentHome() {
         {buttonData.map(({ label, path }, index) => (
           <Button
             key={index}
+            component={Link}
+            href={path}
             variant="filled"
             radius="lg"
             className="home-button"
@@ -61,7 +62,6 @@ export default function StudentHome() {
               if (label === t('StudentHome.logout')) {
                 i18n.changeLanguage('ja');
               }
-              navigate(path);
             }}
           >
             {label}

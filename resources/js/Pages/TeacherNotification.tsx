@@ -1,6 +1,6 @@
 //通知画面　パワポp12
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -8,30 +8,31 @@ import {
   Button,
   Group,
 } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
+import { Link } from '@inertiajs/react';
+
+interface TeacherNotice {
+  user: string;
+  approval: string;
+  date: string;
+}
 
 export default function TeacherNotification() {
   const { t } = useTranslation();
+  const [notifications, setNotifications] = useState<TeacherNotice[]>([]);
 
-  const notifications = [
-    {
-      sender: t('TeacherNotification.name'),
-      subject: t('TeacherNotification.rejected'),
-      date: '1945/12/25',
-    },
-    {
-      sender: t('TeacherNotification.teacher'),
-      subject: t('TeacherNotification.approved'),
-      date: '1945/12/26',
-    },
-    {
-      sender: t('TeacherNotification.admin'),
-      subject: t('TeacherNotification.changeNeeded'),
-      date: '1945/12/27',
-    },
-  ];
-  const navigate = useNavigate();
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await axios.get('/notice');
+        setNotifications(response.data);
+      } catch (error) {
+        console.error("Error fetching teacher notifications:", error);
+      }
+    };
+    fetchNotifications();
+  }, []);
 
   return (
     <Container className="notification-container">
@@ -54,8 +55,8 @@ export default function TeacherNotification() {
         <Table.Tbody>
           {notifications.map((item, index) => (
             <Table.Tr key={index}>
-              <Table.Td>{item.sender}</Table.Td>
-              <Table.Td style={{ color: '#3B72C3' }}>{item.subject}</Table.Td>
+              <Table.Td>{item.user}</Table.Td>
+              <Table.Td style={{ color: '#3B72C3' }}>{item.approval}</Table.Td>
               <Table.Td>{item.date}</Table.Td>
             </Table.Tr>
           ))}
@@ -64,9 +65,10 @@ export default function TeacherNotification() {
 
       <Group className="back-button-group">
         <Button
+          component={Link}
+          href={'/'}
           variant="filled"
           radius="xs"
-          onClick={() => navigate(-1)}
           className="back-button"
         >
           {t('back')}

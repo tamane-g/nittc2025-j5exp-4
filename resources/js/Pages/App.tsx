@@ -1,6 +1,6 @@
 // App.tsx
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import Login from './Login';
+
 import TeacherHome from './TeacherHome';
 import StudentHome from './StudentHome';
 import AdminHome from './AdminHome';
@@ -13,13 +13,14 @@ import Language from './language';
 import Registration from './registration';
 import Remove from './remove';
 import ManagementScreen from './admin';
+import HomeRedirector from './HomeRedirector';
 import TimetableSearch from './TimetableSearch'; // 追加
 
 export default function App() {
   return (
     <HashRouter>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<HomeRedirector />} />
         <Route path="/teacherhome" element={<TeacherHome />} />
         <Route path="/timetable" element={<Timetable />} />
         <Route path="/timetableClick" element={<TimetableClick />} />

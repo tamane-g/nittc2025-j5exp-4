@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Table } from '@mantine/core';
 import { Button } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Link } from '@inertiajs/react';
 
 
 const tableData = [
@@ -28,7 +28,6 @@ function formatDate(date: Date, t: (key: string) => string) {
 
 export default function TimetableClick() {
   const { t } = useTranslation();
-  const navigate = useNavigate(); // ← 追加
   const [data] = useState(tableData);
   const [clickedMessage] = useState('');
   const [currentMonday, setCurrentMonday] = useState(getStartOfWeek(new Date()));
@@ -43,11 +42,6 @@ export default function TimetableClick() {
   const startOfWeek = currentMonday;
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(endOfWeek.getDate() + 4);
-
-  const handleCellClick = (rowIndex: number, colIndex: number) => {
-    if (colIndex === 0) return;
-    navigate('/timetable-change');
-  };
 
   return (
     <>
@@ -68,7 +62,7 @@ export default function TimetableClick() {
         </div>
       )}
       <div className="back-button-container">
-        <Button variant="filled" size="xl" onClick={() => navigate(-1)} style={{ width: '150px' }}>{t('back')}</Button>
+        <Button component={Link} href={'/'} variant="filled" size="xl" style={{ width: '150px' }}>{t('back')}</Button>
       </div>
 
       <style>{`
@@ -242,7 +236,6 @@ export default function TimetableClick() {
                 return (
                   <Table.Td
                     key={colIndex}
-                    onClick={() => handleCellClick(rowIndex, colIndex)}
                     className={`ag-cell ${isLeftColumn
                         ? ''
                         : isGreen
@@ -254,7 +247,11 @@ export default function TimetableClick() {
                     col-id={isLeftColumn ? 'idColumn' : `col${colIndex}`}
                     style={{ cursor: isLeftColumn ? 'default' : 'pointer' }}
                   >
-                    {cell}
+                    {isLeftColumn ? cell : (
+                      <Button component={Link} href={'/timetable-change'} variant="subtle" style={{ width: '100%', height: '100%' }}>
+                        {cell}
+                      </Button>
+                    )}
                   </Table.Td>
                 );
               })}
@@ -263,7 +260,7 @@ export default function TimetableClick() {
         </Table.Tbody>
       </Table>
       <div style={{ textAlign: 'center', marginTop: '20px' }}>
-        <Button variant="filled" size="lg" onClick={() => navigate('/timetable-search')}>{t('TimetableClick.searchAndChange')}</Button>
+        <Button component={Link} href={'/timetable-search'} variant="filled" size="lg">{t('TimetableClick.searchAndChange')}</Button>
       </div>
     </>
   );

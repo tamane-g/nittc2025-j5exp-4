@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -6,29 +6,39 @@ import {
   Button,
   Group,
 } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
+import { Link } from '@inertiajs/react';
+
+interface TimetableEntry {
+  subject: { name: string };
+  room: { name: string };
+  user: { name: string };
+}
+
+interface ClassChange {
+  before_date: string;
+  before_timetable: TimetableEntry;
+  after_date: string;
+  after_timetable: TimetableEntry;
+}
 
 // 表示する授業変更のデータ
 export default function StudentNotification() {
   const { t } = useTranslation();
+  const [classChanges, setClassChanges] = useState<ClassChange[]>([]);
 
-  // 表示する授業変更のデータ
-  const classChanges = [
-    {
-      date: '7/10',
-      period: '3-4',
-      before: '',
-      after: t('StudentNotification.realtimeOSEngineering'),
-    },
-    {
-      date: '7/23',
-      period: '5-6',
-      before: t('StudentNotification.embeddedSystemsOverview'),
-      after: t('StudentNotification.realtimeOSEngineering'),
-    },
-  ];
-  const navigate = useNavigate();
+  useEffect(() => {
+    const fetchStudentNotifications = async () => {
+      try {
+        const response = await axios.get('/notice');
+        setClassChanges(response.data);
+      } catch (error) {
+        console.error("Error fetching student notifications:", error);
+      }
+    };
+    fetchStudentNotifications();
+  }, []);
 
   // テーブルヘッダーの定義
   const tableHeaders = [t('StudentNotification.date'), t('StudentNotification.period'), t('StudentNotification.before'), t('StudentNotification.after')];
@@ -36,10 +46,9 @@ export default function StudentNotification() {
   // テーブルの行を生成
   const rows = classChanges.map((item, index) => (
     <Table.Tr key={index}>
-      <Table.Td>{item.date}</Table.Td>
-      <Table.Td>{item.period}</Table.Td>
-      <Table.Td>{item.before}</Table.Td>
-      <Table.Td>{item.after}</Table.Td>
+      <Table.Td>{item.before_date}</Table.Td>
+      <Table.Td>{`${item.before_timetable.subject.name} (${item.before_timetable.user.name}先生) - ${item.before_timetable.room.name}`}</Table.Td>
+      <Table.Td>{`${item.after_timetable.subject.name} (${item.after_timetable.user.name}先生) - ${item.after_timetable.room.name}`}</Table.Td>
     </Table.Tr>
   ));
 
@@ -74,9 +83,10 @@ export default function StudentNotification() {
       {/* 戻るボタン */}
       <Group className="back-button-group">
         <Button
+          component={Link}
+          href={'/'}
           variant="filled"
           radius="xs"
-          onClick={() => navigate(-1)}
           className="back-button"
         >
           {t('back')}
