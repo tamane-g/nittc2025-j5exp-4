@@ -4,29 +4,35 @@ namespace App\Http\Controllers;
 
 use App\Models\SchoolClass;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect; // Redirect のために追加
 use Illuminate\Validation\Rule; // Rule クラスを使用するため追加
+use Inertia\Inertia; // Inertia.js のレンダリングのため追加
+use Inertia\Response; // Inertia.js のレスポンス型ヒントのため追加
 
 class SchoolClassController extends Controller
 {
     /**
-     * クラスの一覧を取得します。
+     * クラスの一覧を取得し、Inertia.js コンポーネントで表示します。
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Inertia\Response
      */
-    public function index()
+    public function index(): Response
     {
-        // 必要に応じて、関連する生徒の数などをロードすることも可能です
-        // return response()->json(SchoolClass::with('users')->all());
-        return response()->json(SchoolClass::all());
+        $schoolClasses = SchoolClass::all();
+
+        // 'SchoolClasses/Index' はフロントエンドのVue/Reactコンポーネントのパスを想定
+        return Inertia::render('SchoolClasses/Index', [
+            'schoolClasses' => $schoolClasses,
+        ]);
     }
 
     /**
-     * 新しいクラスを保存します。
+     * 新しいクラスを保存し、完了後にリダイレクトします。
      *
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
             'grade' => [
@@ -34,7 +40,7 @@ class SchoolClassController extends Controller
                 'integer',
                 'min:1',
                 'max:6',
-                // ★ 複合ユニーク制約のバリデーションを追加
+                // 複合ユニーク制約のバリデーションを追加
                 // 同じ学年とクラスの組み合わせは一意であるべき
                 Rule::unique('school_classes')->where(function ($query) use ($request) {
                     return $query->where('class', $request->class);
@@ -45,20 +51,18 @@ class SchoolClassController extends Controller
 
         $schoolClass = SchoolClass::create($validated);
 
-        return response()->json([
-            'message' => 'クラスを登録しました',
-            'school_class' => $schoolClass,
-        ], 201);
+        // クラス一覧ページにリダイレクトし、成功メッセージをフラッシュ
+        return Redirect::route('school-classes.index')->with('success', 'クラスを登録しました。');
     }
 
     /**
-     * 指定されたクラスを更新します。
+     * 指定されたクラスを更新し、完了後にリダイレクトします。
      *
      * @param Request $request
      * @param int $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(Request $request, int $id)
+    public function update(Request $request, int $id): \Illuminate\Http\RedirectResponse
     {
         $schoolClass = SchoolClass::findOrFail($id);
 
@@ -78,23 +82,22 @@ class SchoolClassController extends Controller
 
         $schoolClass->update($validated);
 
-        return response()->json([
-            'message' => 'クラスを更新しました',
-            'school_class' => $schoolClass,
-        ]);
+        // クラス一覧ページにリダイレクトし、成功メッセージをフラッシュ
+        return Redirect::route('school-classes.index')->with('success', 'クラスを更新しました。');
     }
 
     /**
-     * 指定されたクラスを削除します。
+     * 指定されたクラスを削除し、完了後にリダイレクトします。
      *
      * @param int $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function destroy(int $id)
+    public function destroy(int $id): \Illuminate\Http\RedirectResponse
     {
         $class = SchoolClass::findOrFail($id);
         $class->delete();
 
-        return response()->json(['message' => 'クラスを削除しました']);
+        // クラス一覧ページにリダイレクトし、成功メッセージをフラッシュ
+        return Redirect::route('school-classes.index')->with('success', 'クラスを削除しました。');
     }
 }
