@@ -16,7 +16,7 @@ export default function Login({ status, canResetPassword }) {
     const submit = (e) => {
         e.preventDefault();
 
-        post(route('admin.login'), {
+        post('/admin/login', {
             onFinish: () => reset('password'),
         });
     };
