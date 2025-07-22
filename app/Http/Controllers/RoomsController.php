@@ -2,92 +2,92 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Room; // SchoolClass から Room モデルに変更
 use Illuminate\Http\Request;
-use App\Models\Room;
-use Illuminate\Validation\Rule; // Rule クラスを使用するため追加
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+use Inertia\Response;
 
-class RoomsController extends Controller
+class RoomsController extends Controller // クラス名を SchoolClassController から RoomsController に変更
 {
     /**
-     * 教室の一覧を取得します。
+     * 教室の一覧を取得し、Inertia.js コンポーネントで表示します。
      *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Inertia\Response
      */
-    public function index(Request $request)
+    public function index(): Response
     {
-        // 全てのカラムを取得する場合、select() は不要です。
-        // 必要に応じて is_concurrent も含めて返します。
-        $rooms = Room::all();
+        $rooms = Room::all(); // SchoolClass::all() から Room::all() に変更
 
-        return response()->json($rooms);
+        // 'Rooms/Index' はフロントエンドのVue/Reactコンポーネントのパスを想定
+        return Inertia::render('Rooms/Index', [ // 'SchoolClasses/Index' から 'Rooms/Index' に変更
+            'rooms' => $rooms, // 'schoolClasses' から 'rooms' に変更
+        ]);
     }
 
     /**
-     * 教室を新規登録します。
+     * 新しい教室を保存し、完了後にリダイレクトします。
      *
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:20|unique:rooms,name', // ★ max:50 を max:20 に、unique を追加
-            'is_concurrent' => 'boolean', // ★ nullable を削除し、デフォルトで false に設定されるように変更
+            'name' => 'required|string|max:20|unique:rooms,name', // name と unique ルールを追加
+            'is_concurrent' => 'boolean', // is_concurrent を追加
         ]);
 
         // is_concurrent がリクエストに含まれない場合、false をデフォルト値とする
-        $room = Room::create([
+        $room = Room::create([ // SchoolClass::create から Room::create に変更
             'name' => $validated['name'],
             'is_concurrent' => $validated['is_concurrent'] ?? false,
         ]);
 
-        return response()->json([
-            'message' => '教室を登録しました',
-            'room' => $room, // 登録された教室情報を返す
-        ], 201);
+        // 教室一覧ページにリダイレクトし、成功メッセージをフラッシュ
+        return Redirect::route('rooms.index')->with('success', '教室を登録しました。'); // 'school-classes.index' から 'rooms.index' に変更
     }
 
     /**
-     * 指定された教室を更新します。
+     * 指定された教室を更新し、完了後にリダイレクトします。
      *
      * @param Request $request
      * @param int $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(Request $request, int $id)
+    public function update(Request $request, int $id): \Illuminate\Http\RedirectResponse
     {
-        $room = Room::findOrFail($id); // ★ find から findOrFail に変更
+        $room = Room::findOrFail($id); // SchoolClass::findOrFail から Room::findOrFail に変更
 
         $validated = $request->validate([
             'name' => [
-                'sometimes', // リクエストに含まれていればバリデーション
+                'sometimes',
                 'string',
-                'max:20', // ★ max:50 を max:20 に修正
-                Rule::unique('rooms')->ignore($room->id), // 更新時は自分自身の名前はユニークチェックから除外
+                'max:20',
+                Rule::unique('rooms')->ignore($room->id), // rooms テーブルに対してユニーク制約を適用
             ],
-            'is_concurrent' => 'sometimes|boolean', // リクエストに含まれていればバリデーション
+            'is_concurrent' => 'sometimes|boolean', // is_concurrent を追加
         ]);
 
-        $room->update($validated);
+        $room->update($validated); // $schoolClass->update から $room->update に変更
 
-        return response()->json([
-            'message' => '教室を更新しました',
-            'room' => $room,
-        ]);
+        // 教室一覧ページにリダイレクトし、成功メッセージをフラッシュ
+        return Redirect::route('rooms.index')->with('success', '教室を更新しました。'); // 'school-classes.index' から 'rooms.index' に変更
     }
 
     /**
-     * 指定された教室を削除します。
+     * 指定された教室を削除し、完了後にリダイレクトします。
      *
      * @param int $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function destroy(int $id)
+    public function destroy(int $id): \Illuminate\Http\RedirectResponse
     {
-        $room = Room::findOrFail($id); // ★ find から findOrFail に変更
-        $room->delete();
+        $room = Room::findOrFail($id); // $class から $room に変更し、Room::findOrFail を使用
+        $room->delete(); // $class->delete() から $room->delete() に変更
 
-        return response()->json(['message' => '教室を削除しました']);
+        // 教室一覧ページにリダイレクトし、成功メッセージをフラッシュ
+        return Redirect::route('rooms.index')->with('success', '教室を削除しました。'); // 'school-classes.index' から 'rooms.index' に変更
     }
 }
