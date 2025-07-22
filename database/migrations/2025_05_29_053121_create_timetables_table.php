@@ -14,13 +14,17 @@ return new class extends Migration
         Schema::create('timetables', function (Blueprint $table) {
             $table->id();
             $table->enum('term', ['semester_1', 'semester_2', 'full_year']);
-            $table->enum('day', ['Monday', 'Tuesday', 'Wednseday', 'Thursday', 'Friday']);
+            $table->enum('day', ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']); // ★ Wednseday を Wednesday に修正
             $table->enum('lesson', ['lesson_1', 'lesson_2', 'lesson_3', 'lesson_4']);
-            $table->foreignId('teacher_id')->constrained();
-            $table->foreignId('room_id')->constrained();
-            $table->foreignId('subject_id')->constrained();
-            $table->foreignId('school_class_id')->constrained();
+            $table->foreignId('teacher_id')->constrained('users')->onDelete('restrict'); // テーブル名を明示し、onDeleteをrestrictに
+            $table->foreignId('room_id')->constrained('rooms')->onDelete('restrict'); // テーブル名を明示し、onDeleteをrestrictに
+            $table->foreignId('subject_id')->constrained('subjects')->onDelete('restrict'); // テーブル名を明示し、onDeleteをrestrictに
+            $table->foreignId('school_class_id')->constrained('school_classes')->onDelete('restrict'); // テーブル名を明示し、onDeleteをrestrictに
             $table->timestamps();
+
+            // ★ 複合ユニーク制約を追加
+            // 同じ学期、曜日、時限、クラスに対して一つの時間割エントリのみを許可
+            $table->unique(['term', 'day', 'lesson', 'school_class_id'], 'unique_timetable_slot');
         });
     }
 

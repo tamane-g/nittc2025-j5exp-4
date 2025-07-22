@@ -3,10 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class User extends Authenticatable
 {
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'name', 'school_class_id', 'email', 'password'
     ];
@@ -14,6 +19,5 @@ class User extends Authenticatable
     public function schoolClass()
     {
         return $this->belongsTo(SchoolClass::class, 'school_class_grade', 'grade');
-        // 注意：複合キー school_class_grade + school_class_at の対応が必要ならカスタム実装が必要
     }
 }
