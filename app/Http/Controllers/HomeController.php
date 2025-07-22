@@ -14,17 +14,17 @@ class HomeController extends Controller
     {
         if (Auth::guard('admin')->check()) {
             // 管理者ガードで認証済みの場合
-            return Inertia::render('Admin/AdminHome');
+            return Inertia::render('AdminHome');
         }
 
         if (Auth::guard('teacher')->check()) {
             // 先生ガードで認証済みの場合
-            return Inertia::render('Teacher/TeacherHome');
+            return Inertia::render('TeacherHome');
         }
 
         if (Auth::guard('student')->check()) {
             // 生徒ガードで認証済みの場合
-            return Inertia::render('Student/StudentHome');
+            return Inertia::render('StudentHome');
         }
         
         return redirect()->route('login');
