@@ -2,10 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@mantine/core';
 import { NativeSelect } from '@mantine/core';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useForm } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { Link } from '@inertiajs/react';
 
 
 function getStartOfWeek(date: Date) {
@@ -22,7 +23,6 @@ function formatDate(date: Date, t: (key: string) => string) {
 
 export default function TimetableChange() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const location = useLocation();
   const [clickedMessage] = useState('');
   const [currentMonday, setCurrentMonday] = useState(getStartOfWeek(new Date()));
@@ -170,7 +170,7 @@ export default function TimetableChange() {
 
 
       <div className="back-button-container">
-        <Button variant="filled" size="xl" onClick={() => navigate(-1)} style={{ width: '150px' }}>{t('back')}</Button>
+        <Button component={Link} href={'/'} variant="filled" size="xl" style={{ width: '150px' }}>{t('back')}</Button>
       </div>
 
       <div className="send-button-container">

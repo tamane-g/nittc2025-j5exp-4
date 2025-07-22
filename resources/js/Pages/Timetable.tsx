@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Table } from '@mantine/core';
 import { Button } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios'; // Import axios for API calls
 import { usePage } from '@inertiajs/react'; // To get user data from Inertia.js props
+import { Link } from '@inertiajs/react';
 
 interface UserProps {
   user?: {
@@ -46,7 +46,6 @@ function formatDate(date: Date, t: (key: string) => string) {
 
 export default function Timetable() {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
   const [timetableData, setTimetableData] = useState<TimetableEntry[][]>([]); // State to store fetched timetable data as a 2D array
   const [currentMonday, setCurrentMonday] = useState(getStartOfWeek(new Date()));
   const { props } = usePage<UserProps>(); // Get page props from Inertia.js
@@ -126,7 +125,7 @@ export default function Timetable() {
       </div>
 
       <div className="back-button-container">
-        <Button variant="filled" size="xl" onClick={() => navigate(-1)} style={{ width: '150px' }}>{t('back')}</Button>
+        <Button component={Link} href={'/'} variant="filled" size="xl" style={{ width: '150px' }}>{t('back')}</Button>
       </div>
 
       <style>{`

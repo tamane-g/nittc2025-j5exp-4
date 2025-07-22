@@ -1,8 +1,7 @@
 //ログイン画面　パワポp8
 
 import { Box, Button, Group, Stack, TextInput, Container } from '@mantine/core';
-import { useForm } from '@inertiajs/react';
-import { useNavigate } from 'react-router-dom';
+import { useForm, Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 
 export default function Login() {
@@ -12,7 +11,7 @@ export default function Login() {
     password: '',
   });
 
-  const navigate = useNavigate();
+  
 
   const handleSubmit = () => {
     // Inertia.jsのpostメソッドを使用します。
@@ -45,7 +44,7 @@ export default function Login() {
         </Stack>
 
         <Group className="login-buttons">
-          <Button variant="filled" radius="xs" className="back-button">
+          <Button component={Link} href={'/'} variant="filled" radius="xs" className="back-button">
             {t('back')}
           </Button>
           <Button variant="filled" radius="xs" onClick={handleSubmit} className="submit-button">

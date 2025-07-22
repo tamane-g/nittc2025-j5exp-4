@@ -1,14 +1,13 @@
 
 import { useState } from 'react';
 import { Button, Select, List, ThemeIcon, Box } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
 import { IconCircleDashed } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
+import { Link } from '@inertiajs/react';
 
 // 詳細な時間割のダミーデータ
 export default function TimetableSearch() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
@@ -33,11 +32,6 @@ export default function TimetableSearch() {
     const dayMatch = !selectedDay || item.day === selectedDay;
     return classMatch && dayMatch;
   });
-
-  // 変更画面への遷移
-  const handleSubjectClick = (subject: any) => {
-    navigate('/timetable-change', { state: { selectedSubject: subject } });
-  };
 
   return (
     <div style={{ padding: '20px' }}>
@@ -93,22 +87,25 @@ export default function TimetableSearch() {
           }
         >
           {filteredData.map((item) => (
-            <List.Item
+            <Link
               key={item.id}
-              onClick={() => handleSubjectClick(item)}
-              style={{ cursor: 'pointer', padding: '10px', borderBottom: '1px solid #eee', wordWrap: 'break-word' }}
+              href={'/timetable-change'} // Linkコンポーネントで遷移
+              style={{ cursor: 'pointer', padding: '10px', borderBottom: '1px solid #eee', wordWrap: 'break-word', display: 'block', color: 'inherit', textDecoration: 'none' }}
             >
-              {`${item.day}${t('TimetableSearch.period')} ${item.period}限 : ${item.subject} (${item.teacher}先生) - ${item.class}`}
-            </List.Item>
+              <List.Item>
+                {`${item.day}${t('TimetableSearch.period')} ${item.period}限 : ${item.subject} (${item.teacher}先生) - ${item.class}`}
+              </List.Item>
+            </Link>
           ))}
         </List>
         {filteredData.length === 0 && <p>{t('TimetableSearch.noClassesFound')}</p>}
       </div>
 
       <Button
+        component={Link}
+        href={'/'} // ホームに戻る
         variant="filled"
         size="md"
-        onClick={() => navigate(-1)}
         style={{ position: 'fixed', bottom: '20px', left: '20px' }}
       >
         {t('back')}

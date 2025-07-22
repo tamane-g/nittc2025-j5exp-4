@@ -2,13 +2,12 @@
 
 import React, { useState } from 'react';
 import {Box,Button, Container, FileInput} from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { Link } from '@inertiajs/react';
 
 export default function Remove() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [csvFile, setCsvFile] = useState<File | null>(null);
 
   const handleSubmit = async () => {
@@ -23,7 +22,7 @@ export default function Remove() {
           },
         });
         alert(t('Remove.success'));
-        navigate(-1);
+        // navigate(-1); // Linkコンポーネントに置き換え
       } catch (error) {
         console.error("Error uploading CSV file:", error);
         alert(t('Remove.error'));
@@ -63,9 +62,10 @@ export default function Remove() {
       </Container>
 
       <Button
+        component={Link}
+        href={'/'}
         variant="filled"
         radius="xs"
-        onClick={() => navigate(-1)}
         className="back-button"
       >
         {t('back')}

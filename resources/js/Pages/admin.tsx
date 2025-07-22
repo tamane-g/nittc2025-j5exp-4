@@ -2,7 +2,7 @@
 
 import { Box, Button, Container, Group, Table, Text, Textarea} from '@mantine/core';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { useForm } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 
@@ -103,7 +103,7 @@ export default function ManagementScreen() {
     changeRequests.map((req): ChangeRequest => ({ ...req, status: '未承認' }))
   );
   const [selectedConflict, setSelectedConflict] = useState<(ChangeRequest & { roomConflict: boolean, teacherConflict: boolean }) | null>(null);
- const navigate = useNavigate();
+ 
   const [selectedButtons, setSelectedButtons] = useState(Array(requests.length).fill(null));
   const [showRejectionReason, setShowRejectionReason] = useState(false);
   const [reasonSubmitted, setReasonSubmitted] = useState(false);
@@ -312,14 +312,14 @@ export default function ManagementScreen() {
 
       {/* 戻るボタン */}
       <Group mt="md" className="back-button-group">
-    <Button
-        variant="filled"
-        radius="xs"
-        onClick={() => navigate(-1)}
-        className="back-button"
-      >
-        {t('back')}
-    </Button>
+        <Link href="/" className="back-button">
+          <Button
+            variant="filled"
+            radius="xs"
+          >
+            {t('back')}
+          </Button>
+        </Link>
       </Group>
       <style>{`
         .admin-container {

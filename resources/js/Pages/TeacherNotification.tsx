@@ -8,9 +8,9 @@ import {
   Button,
   Group,
 } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { Link } from '@inertiajs/react';
 
 interface TeacherNotice {
   user: string;
@@ -21,7 +21,6 @@ interface TeacherNotice {
 export default function TeacherNotification() {
   const { t } = useTranslation();
   const [notifications, setNotifications] = useState<TeacherNotice[]>([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -66,9 +65,10 @@ export default function TeacherNotification() {
 
       <Group className="back-button-group">
         <Button
+          component={Link}
+          href={'/'}
           variant="filled"
           radius="xs"
-          onClick={() => navigate(-1)}
           className="back-button"
         >
           {t('back')}

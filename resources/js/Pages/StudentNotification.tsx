@@ -6,9 +6,9 @@ import {
   Button,
   Group,
 } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { Link } from '@inertiajs/react';
 
 interface TimetableEntry {
   subject: { name: string };
@@ -27,7 +27,6 @@ interface ClassChange {
 export default function StudentNotification() {
   const { t } = useTranslation();
   const [classChanges, setClassChanges] = useState<ClassChange[]>([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStudentNotifications = async () => {
@@ -84,9 +83,10 @@ export default function StudentNotification() {
       {/* 戻るボタン */}
       <Group className="back-button-group">
         <Button
+          component={Link}
+          href={'/'}
           variant="filled"
           radius="xs"
-          onClick={() => navigate(-1)}
           className="back-button"
         >
           {t('back')}

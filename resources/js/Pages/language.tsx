@@ -8,12 +8,11 @@ import {
   Select,
 } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Link } from '@inertiajs/react';
 
 export default function Language() {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchLanguage = async () => {
@@ -62,7 +61,7 @@ export default function Language() {
         </Stack>
 
         <Group className="language-buttons">
-          <Button variant="filled" radius="xs" onClick={() => navigate(-1)} className="back-button">
+          <Button component={Link} href={'/'} variant="filled" radius="xs" className="back-button">
             {t('back')}
           </Button>
         </Group>
