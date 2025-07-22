@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Teacher\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\LoginRequest;
-use Illuminate\Http\RedirectResponse;
+// LoginRequestは使わないので、Requestに変更
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\ValidationException; // エラー送出用にインポート
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,19 +22,35 @@ class AuthenticatedSessionController extends Controller
         return Inertia::render('Teacher/Auth/Login', [
             'canResetPassword' => Route::has('teacher.password.request'),
             'status' => session('status'),
+            // ログインページに自分がどのGuardかを教えてあげる
+            'guard' => 'teacher',
         ]);
     }
 
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
-        $request->authenticate();
+        // 1. バリデーションをここで行う
+        $request->validate([
+            'email' => 'required|string|email',
+            'password' => 'required|string',
+        ]);
 
+        // 2. 'teacher' Guardを明示的に指定して認証を試行
+        if (! Auth::guard('teacher')->attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+            // 3. 認証失敗時はValidationExceptionを投げる
+            throw ValidationException::withMessages([
+                'email' => trans('auth.failed'),
+            ]);
+        }
+        
+        // 4. 認証成功時はセッションを再生成
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // 5. 先生用のダッシュボードなどにリダイレクト
+        return redirect()->intended(route('home')); // 'teacher.dashboard'は適切なルート名に変更してください
     }
 
     /**
@@ -41,6 +58,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // この部分は正しく 'teacher' Guardを指定できている
         Auth::guard('teacher')->logout();
 
         $request->session()->invalidate();

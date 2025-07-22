@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 // ログイン・認証済みのみアクセス可能
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth.any'])->group(function () {
     Route::get('/', HomeController::class)->name('home'); // StudentHome
     Route::get('/language', [LanguageController::class, 'index'])->name('language.view'); // Language
     Route::post('/language', [LanguageController::class, 'change'])->name('language.change');
