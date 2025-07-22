@@ -1,13 +1,37 @@
 //ユーザ登録画面　パワポp9
 
-import React from 'react';
+import React, { useState } from 'react';
 import {Box,Button, Container, FileInput} from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 
 export default function Remove() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+
+  const handleSubmit = async () => {
+    if (csvFile) {
+      const formData = new FormData();
+      formData.append('csvFile', csvFile);
+
+      try {
+        await axios.post('/remove', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        alert(t('Remove.success'));
+        navigate(-1);
+      } catch (error) {
+        console.error("Error uploading CSV file:", error);
+        alert(t('Remove.error'));
+      }
+    } else {
+      alert(t('Remove.noFileSelected'));
+    }
+  };
  
   return (
     <>
@@ -24,6 +48,8 @@ export default function Remove() {
           w={300}
           size="lg"
           placeholder={t('Remove.csvFilePlaceholder')}
+          value={csvFile}
+          onChange={setCsvFile}
           styles={{
             input: {
               border: '3px solid black',
@@ -48,6 +74,7 @@ export default function Remove() {
         variant="filled"
         radius="xs"
         className="submit-button"
+        onClick={handleSubmit}
       >
         {t('Remove.send')}
       </Button>

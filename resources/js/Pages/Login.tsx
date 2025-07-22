@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 export default function Login() {
   const { t } = useTranslation();
-  const { data, setData } = useForm({
+  const { data, setData, post } = useForm({
     name: '',
     password: '',
   });
@@ -15,20 +15,8 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleSubmit = () => {
-    // Inertia.jsのpostメソッドを使用する場合は以下のようにします。
-    // post('/login');
-
-    const username = data.name.trim();
-
-    if (username === 'Teacher') {
-      navigate('/TeacherHome');
-    } else if (username === 'Student') {
-      navigate('/StudentHome');
-    } else if (username === 'Admin') {
-      navigate('/AdminHome');
-    } else {
-      alert(t('Login.InvalidUser'));
-    }
+    // Inertia.jsのpostメソッドを使用します。
+    post('/login');
   };
 
   return (
