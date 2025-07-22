@@ -16,70 +16,69 @@ class TimetableChangeSeeder extends Seeder
      */
     public function run(): void
     {
-        // --- 準備: 関連するモデルのデータを取得 ---
-        $teachers = User::all();
-        $timetables = Timetable::all();
-
-        // 必要なデータがなければ処理を中断
-        if ($teachers->isEmpty() || $timetables->count() < 2) {
-            $this->command->info('Skipping TimetableChangeSeeder: Not enough teachers or timetables found.');
+        $teachers = User::role('teacher')->get();
+        if ($teachers->isEmpty()) {
+            $this->command->info('Skipping TimetableChangeSeeder: No teachers found.');
             return;
         }
 
-        // --- 時間割変更申請データの生成 (3件作成) ---
+        // --- ★★★ここからが修正箇所★★★ ---
+        // --- 信頼性の高い「授業の相互交換」テストデータを作成 ---
+        $this->createReliableSwapChange($teachers);
+    }
 
-        // 1件目: 承認済みの申請
-        $beforeSlot1 = $timetables->random();
-        // ★ 変更前の時間割の曜日に合わせて、直近の該当日付を生成
-        $beforeDate1 = Carbon::parse('next ' . $beforeSlot1->day)->toDateString();
+    /**
+     * 授業の相互交換テストデータを作成する、より信頼性の高いヘルパーメソッド
+     * @param \Illuminate\Database\Eloquent\Collection $teachers
+     */
+    private function createReliableSwapChange($teachers): void
+    {
+        // --- 修正点: 特定のクラス(ID=1)を対象にする ---
+        $classIdToTest = 1;
+        $classToTest = SchoolClass::find($classIdToTest);
 
-        $afterSlot1 = $timetables->where('id', '!=', $beforeSlot1->id)->random();
-        // ★ 変更後の時間割の曜日に合わせて、翌週の該当日付を生成
-        $afterDate1 = Carbon::parse('next ' . $afterSlot1->day)->addWeek()->toDateString();
+        if (!$classToTest) {
+            $this->command->error("Class with ID {$classIdToTest} not found. Cannot create reliable swap change.");
+            return;
+        }
 
-        TimetableChange::create([
-            'teacher_id' => $teachers->random()->id,
-            'before_date' => $beforeDate1,
-            'before_timetable_id' => $beforeSlot1->id,
-            'after_date' => $afterDate1,
-            'after_timetable_id' => $afterSlot1->id,
-            'approval' => true, // 承認済み
-        ]);
+        // そのクラスの火曜日と水曜日の1時間目の授業を取得
+        $tuesdaySlot = Timetable::where('school_class_id', $classToTest->id)
+            ->where('day', 'Tuesday')->where('lesson', 'lesson_1')->first();
 
-        // 2件目: 未承認（申請中）の申請
-        $beforeSlot2 = $timetables->random();
-        // ★ 変更前の時間割の曜日に合わせて、直近の該当日付を生成
-        $beforeDate2 = Carbon::parse('next ' . $beforeSlot2->day)->toDateString();
+        $wednesdaySlot = Timetable::where('school_class_id', $classToTest->id)
+            ->where('day', 'Wednesday')->where('lesson', 'lesson_2')->first();
 
-        $afterSlot2 = $timetables->where('id', '!=', $beforeSlot2->id)->random();
-        // ★ 変更後の時間割の曜日に合わせて、翌週の該当日付を生成
-        $afterDate2 = Carbon::parse('next ' . $afterSlot2->day)->addWeek()->toDateString();
-        
-        TimetableChange::create([
-            'teacher_id' => $teachers->random()->id,
-            'before_date' => $beforeDate2,
-            'before_timetable_id' => $beforeSlot2->id,
-            'after_date' => $afterDate2,
-            'after_timetable_id' => $afterSlot2->id,
-            'approval' => false, // 未承認
-        ]);
+        // 両方のスロットが存在する場合のみ、変更データを作成
+        if ($tuesdaySlot && $wednesdaySlot) {
+            // シーダーの実行日に関わらず、「今週の」火曜日と水曜日の日付を取得
+            $tuesdayDate = (Carbon::today())->toDateString();
+            $wednesdayDate = (Carbon::yesterday())->toDateString();
+            $teacher = $teachers->random();
 
-        // 3件目: 別の未承認（申請中）の申請
-        $beforeSlot3 = $timetables->random();
-        // ★ 変更前の時間割の曜日に合わせて、直近の該当日付を生成
-        $beforeDate3 = Carbon::parse('next ' . $beforeSlot3->day)->toDateString();
+            // 既存の同じ変更データを削除して、重複を防ぐ
+            TimetableChange::where('before_timetable_id', $tuesdaySlot->id)->where('before_date', $tuesdayDate)->delete();
+            TimetableChange::where('before_timetable_id', $wednesdaySlot->id)->where('before_date', $wednesdayDate)->delete();
 
-        $afterSlot3 = $timetables->where('id', '!=', $beforeSlot3->id)->random();
-        // ★ 変更後の時間割の曜日に合わせて、翌々週の該当日付を生成（バリエーションのため）
-        $afterDate3 = Carbon::parse('next ' . $afterSlot3->day)->addWeeks(2)->toDateString();
+            // 変更1: 火曜日の授業(tuesdaySlot)を、水曜日に移動する申請
+            TimetableChange::create([
+                'teacher_id' => 1,
+                'before_date' => $tuesdayDate,
+                'before_timetable_id' => $tuesdaySlot->id,
+                'after_date' => $wednesdayDate,
+                'after_timetable_id' => $wednesdaySlot->id,
+                'approval' => true,
+            ]);
 
-        TimetableChange::create([
-            'teacher_id' => $teachers->random()->id,
-            'before_date' => $beforeDate3,
-            'before_timetable_id' => $beforeSlot3->id,
-            'after_date' => $afterDate3,
-            'after_timetable_id' => $afterSlot3->id,
-            'approval' => false, // 未承認
-        ]);
+            // 変更2: 水曜日の授業(wednesdaySlot)を、火曜日に移動する申請
+            TimetableChange::create([
+                'teacher_id' => 1,
+                'before_date' => $wednesdayDate,
+                'before_timetable_id' => $wednesdaySlot->id,
+                'after_date' => $tuesdayDate,
+                'after_timetable_id' => $tuesdaySlot->id,
+                'approval' => true,
+            ]);
+        }
     }
 }

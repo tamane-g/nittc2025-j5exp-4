@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Timetable;
 use App\Models\TimetableChange; // TimetableChangeモデルをインポート
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; // Authファサードをインポート
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
@@ -23,28 +24,36 @@ class TimetableController extends Controller
      */
     public function view(Request $request): Response
     {
-        // 1. フロントエンドから受け取った日付を検証・取得
-        $validated = $request->validate([
-            'date' => 'required|date_format:Y-m-d',
-            'school_class_id' => 'required|exists:school_classes,id',
-        ]);
-        $targetDate = Carbon::parse($validated['date']);
-        $schoolClassId = $validated['school_class_id'];
+        // 1. ログイン中の学生ユーザーを取得
+        $student = Auth::user();
 
-        // 2. 対象となる週の月曜日と金曜日を計算
+        // 学生にクラスが割り当てられているか確認
+        if (!$student || !$student->school_class_id) {
+            return Redirect::route('home')->with('error', 'クラスが割り当てられていません。');
+        }
+        $schoolClassId = $student->school_class_id;
+
+        // 2. 日付の検証（dateは任意、なければ今日の日付をデフォルトに）
+        $validated = $request->validate([
+            'date' => 'nullable|date_format:Y-m-d',
+        ]);
+        $dateInput = $validated['date'] ?? Carbon::today()->toDateString();
+        $targetDate = Carbon::parse($dateInput);
+
+
+        // 3. 対象となる週の月曜日と金曜日を計算
         $startOfWeek = $targetDate->copy()->startOfWeek(Carbon::MONDAY);
         $endOfWeek = $targetDate->copy()->endOfWeek(Carbon::FRIDAY);
 
-        // 3. 基本となる時間割テンプレートを取得（指定されたクラスのもの）
+        // 4. 基本となる時間割テンプレートを取得（ログイン中の学生のクラスのもの）
         $baseTimetables = Timetable::with(['subject', 'room', 'teacher'])
             ->where('school_class_id', $schoolClassId)
             ->get()
             ->keyBy(function ($item) {
-                // '曜日-時限' (例: 'Monday-lesson_1') の形でキーを付けて連想配列に変換
                 return $item->day . '-' . $item->lesson;
             });
 
-        // 4. 指定された週に影響する、承認済みの時間割変更を取得
+        // 5. 指定された週に影響する、承認済みの時間割変更を取得
         $approvedChanges = TimetableChange::with(['beforeTimetable.subject', 'beforeTimetable.teacher', 'afterTimetable.subject', 'afterTimetable.teacher'])
             ->where('approval', true)
             ->where(function ($query) use ($startOfWeek, $endOfWeek) {
@@ -53,24 +62,22 @@ class TimetableController extends Controller
             })
             ->get();
 
-        // 5. 変更を適用するための処理
-        $cancellations = []; // この週で「キャンセル」されるコマの情報
-        $additions = [];     // この週に「追加」されるコマの情報
+        // 6. 変更を適用するための処理
+        $cancellations = [];
+        $additions = [];
 
         foreach ($approvedChanges as $change) {
-            // 変更前の日付が対象週に含まれる場合、キャンセルリストに追加
             if ($change->before_date >= $startOfWeek->toDateString() && $change->before_date <= $endOfWeek->toDateString()) {
                 $key = $change->before_date . '-' . $change->beforeTimetable->day . '-' . $change->beforeTimetable->lesson;
                 $cancellations[$key] = true;
             }
-            // 変更後の日付が対象週に含まれる場合、追加リストに追加
             if ($change->after_date >= $startOfWeek->toDateString() && $change->after_date <= $endOfWeek->toDateString()) {
                 $key = $change->after_date . '-' . $change->afterTimetable->day . '-' . $change->afterTimetable->lesson;
-                $additions[$key] = $change; // 変更情報全体を格納
+                $additions[$key] = $change;
             }
         }
 
-        // 6. 最終的な週間時間割を構築
+        // 7. 最終的な週間時間割を構築
         $weeklyTimetable = [];
         $currentDay = $startOfWeek->copy();
         $daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
@@ -84,8 +91,8 @@ class TimetableController extends Controller
                     'day' => $dayName,
                     'lesson' => $lessonName,
                     'date' => $dateStr,
-                    'entry' => null, // 時間割エントリ
-                    'is_changed' => false, // 変更されたコマかどうかのフラグ
+                    'entry' => null,
+                    'is_changed' => false,
                 ];
 
                 $additionKey = $dateStr . '-' . $dayName . '-' . $lessonName;
@@ -93,14 +100,13 @@ class TimetableController extends Controller
                 $baseKey = $dayName . '-' . $lessonName;
 
                 if (isset($additions[$additionKey])) {
-                    // 追加されるコマがある場合
-                    $slot['entry'] = $additions[$additionKey]->afterTimetable;
+                    // ★★★ ここが修正点 ★★★
+                    // 追加されるコマには、移動「元」の授業内容(beforeTimetable)をセットする
+                    $slot['entry'] = $additions[$additionKey]->beforeTimetable;
                     $slot['is_changed'] = true;
                 } elseif (isset($cancellations[$cancellationKey])) {
-                    // キャンセルされるコマの場合、entryはnullのまま
                     $slot['is_changed'] = true;
                 } elseif (isset($baseTimetables[$baseKey])) {
-                    // 基本時間割のコマがある場合
                     $slot['entry'] = $baseTimetables[$baseKey];
                 }
                 
@@ -110,13 +116,13 @@ class TimetableController extends Controller
             $currentDay->addDay();
         }
 
-        // 'Timetables/WeekView' はフロントエンドのVue/Reactコンポーネントのパスを想定
-        return Inertia::render('Timetables/WeekView', [
+        return Inertia::render('Timetable', [
             'weeklyTimetable' => $weeklyTimetable,
             'startDate' => $startOfWeek->toDateString(),
             'endDate' => $endOfWeek->toDateString(),
         ]);
     }
+
 
     /**
      * 時間割テンプレートデータの一覧を取得し、Inertia.js コンポーネントで表示します。

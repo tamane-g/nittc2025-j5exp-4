@@ -17,13 +17,13 @@ Route::middleware(['auth.any'])->group(function () {
 });
 
 // 認証済み学生のみアクセス可能
-Route::middleware(['auth:student', 'verified'])->group(function () {
+Route::middleware(['auth:student'])->group(function () {
     Route::get('/timetable', [TimetableController::class, 'view'])->name('timetable.view'); // Timetable
     Route::get('/notice', [UserController::class, 'notice'])->name('student.notice'); // StudentNotification
 });
 
 // 認証済み教師のみアクセス可能
-Route::middleware(['auth:teacher', 'verified'])->group(function () {
+Route::middleware(['auth:teacher'])->group(function () {
     Route::get('/change', [TimetableChangeController::class, 'show'])->name('timetablechange.view');
     Route::post('/change', [TimetableChangeController::class, 'store'])->name('timetablechange.store');
     Route::get('/notice', [TeacherController::class, 'notice'])->name('teacher.notice');
@@ -31,7 +31,7 @@ Route::middleware(['auth:teacher', 'verified'])->group(function () {
 });
 
 // 認証済み管理者のみアクセス可能
-Route::middleware(['auth:admin', 'verified'])->group(function () {
+Route::middleware(['auth:admin'])->group(function () {
     Route::get('/change', [TimetableChangeController::class, 'index'])->name('timetablechange.index');
     Route::post('/change', [TimetableChangeController::class, 'approve'])->name('timetablechange.approve');
     Route::get('/regist', [UserController::class, 'regist'])->name('regist.view');
