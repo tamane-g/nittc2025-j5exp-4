@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Table } from '@mantine/core';
 import { Button } from '@mantine/core';
-import { useNavigate } from 'react-router-dom'; // ← 追加
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 
 const tableData = [
@@ -20,13 +21,13 @@ function getStartOfWeek(date: Date) {
   return d;
 }
 
-function formatDate(date: Date) {
-  return `${date.getMonth() + 1}月${date.getDate()}日`;
+function formatDate(date: Date, t: (key: string) => string) {
+  return `${date.getMonth() + 1}${t('Timetable.month')}${date.getDate()}${t('Timetable.day')}`;
 }
 
 
 export default function TimetableClick() {
-
+  const { t } = useTranslation();
   const navigate = useNavigate(); // ← 追加
   const [data] = useState(tableData);
   const [clickedMessage] = useState('');
@@ -54,10 +55,10 @@ export default function TimetableClick() {
         <div className="date-selector">
           <button onClick={() => changeWeek(-1)}>←</button>
           <div>
-            {formatDate(startOfWeek)} 〜 {formatDate(endOfWeek)}
+            {formatDate(startOfWeek, t)} 〜 {formatDate(endOfWeek, t)}
           </div>
           <button onClick={() => changeWeek(1)}>→</button>
-          <div className="top-right-box">5年5組　99番　高専　太郎</div>
+          <div className="top-right-box">5{t('Timetable.year')}5{t('Timetable.class')}　99{t('Timetable.number')}　{t('Timetable.studentName')}</div>
         </div>
       </div>
 
@@ -67,19 +68,20 @@ export default function TimetableClick() {
         </div>
       )}
       <div className="back-button-container">
-        <Button variant="filled" size="xl" onClick={() => navigate(-1)} style={{ width: '150px' }}>戻る</Button>
+        <Button variant="filled" size="xl" onClick={() => navigate(-1)} style={{ width: '150px' }}>{t('back')}</Button>
       </div>
 
       <style>{`
         .custom-table {
           table-layout: fixed !important;
-          width: 840px !important; 
+          width: 100% !important; 
+          max-width: 840px;
           border-collapse: collapse;
           margin: 0 auto;
           margin-top: 50px; 
         }
         .custom-table th, .custom-table td {
-          width: 140px; 
+          width: auto; 
           height: 90px;
           text-align: center;
           vertical-align: middle;
@@ -165,13 +167,57 @@ export default function TimetableClick() {
           left: 50px;
           bottom: 70px;
         }
-          
+        @media (max-width: 768px) {
+          .custom-table {
+            margin-top: 20px;
+          }
+          .custom-table th, .custom-table td {
+            height: 60px;
+            font-size: 12px;
+          }
+          .header-blue {
+            font-size: 18px;
+          }
+          .ag-cell {
+            font-size: 14px;
+          }
+          .rectangle {
+            height: auto;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+          }
+          .date-selector {
+            font-size: 16px;
+            flex-direction: column;
+            width: 90%;
+            margin: 10px 0 0 0;
+            padding: 10px 0;
+            align-items: center;
+          }
+          .date-selector button {
+            font-size: 18px;
+          }
+          .top-right-box {
+            position: static;
+            margin-top: 10px;
+            font-size: 12px;
+            width: 90%;
+            text-align: center;
+          }
+          .back-button-container {
+            position: static;
+            margin: 20px auto;
+            width: 100%;
+            text-align: center;
+          }
+        }
       `}</style>
 
       <Table className="custom-table">
         <Table.Thead>
           <Table.Tr>
-            {['', '月', '火', '水', '木', '金'].map((header, i) => (
+            {[t('Timetable.empty'), t('Timetable.monday'), t('Timetable.tuesday'), t('Timetable.wednesday'), t('Timetable.thursday'), t('Timetable.friday')].map((header, i) => (
               <Table.Th key={i} className={i === 0 ? 'header-black' : 'header-blue'}>
                 {header}
               </Table.Th>
@@ -216,6 +262,9 @@ export default function TimetableClick() {
           ))}
         </Table.Tbody>
       </Table>
+      <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        <Button variant="filled" size="lg" onClick={() => navigate('/timetable-search')}>{t('TimetableClick.searchAndChange')}</Button>
+      </div>
     </>
   );
 }
