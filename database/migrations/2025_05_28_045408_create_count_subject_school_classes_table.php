@@ -13,9 +13,15 @@ return new class extends Migration
     {
         Schema::create('count_subject_school_classes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('subject_id')->constrained();
-            $table->foreignId('school_class_id')->constrained();
+            // subject_id を明示し、cascadeOnDelete を追加
+            $table->foreignId('subject_id')->constrained('subjects')->cascadeOnDelete();
+            // school_class_id を明示し、cascadeOnDelete を追加
+            $table->foreignId('school_class_id')->constrained('school_classes')->cascadeOnDelete();
             $table->timestamps();
+
+            // ★ 複合ユニーク制約を追加
+            // 同じ科目とクラスの組み合わせは一意であるべき
+            $table->unique(['subject_id', 'school_class_id'], 'unique_subject_class');
         });
     }
 
@@ -24,6 +30,12 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('count_subject_school_classes');
+    // 外部キー制約がある場合、dropIfExists の前に外部キーを解除する必要がある場合がありますが、
+    // Laravel の最新バージョンでは自動で処理されることが多いです。
+    // 必要であれば、以下のように明示的に dropForeign を追加することもできます。
+    // Schema::table('count_subject_school_classes', function (Blueprint $table) {
+    //     $table->dropForeign(['subject_id']);
+    //     $table->dropForeign(['school_class_id']);
+    // });
     }
 };

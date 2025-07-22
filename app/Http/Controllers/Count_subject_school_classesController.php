@@ -1,48 +1,33 @@
 <?php
 
-namespace App\Http\Controllers;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-use Illuminate\Http\Request;
-use App\Models\CountSubjectSchoolClass;
-
-class Count_subject_school_classesController extends Controller
+return new class extends Migration
 {
-    public function index(Request $request)
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
     {
-        $data = CountSubjectSchoolClass::select([
-            'id',
-            'subject_id',
-            'school_class_id',
-            'count',
-        ])->get();
+        Schema::create('count_subject_school_classes', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('subject_id')->constrained('subjects')->cascadeOnDelete();
+            $table->foreignId('school_class_id')->constrained('school_classes')->cascadeOnDelete();
+            $table->integer('count')->default(0); // ★ count カラムを追加
+            $table->timestamps();
 
-        return response()->json($data);
+            // 複合ユニーク制約
+            $table->unique(['subject_id', 'school_class_id'], 'unique_subject_class');
+        });
     }
 
-    public function store(Request $request)
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
     {
-        $validated = $request->validate([
-            'subject_id' => 'required|exists:subjects,id',
-            'school_class_id' => 'required|exists:school_classes,id',
-            'count' => 'required|integer|min:0',
-        ]);
-
-        CountSubjectSchoolClass::create($validated);
-
-        return response()->json(['message' => 'データを登録しました']);
+        Schema::dropIfExists('count_subject_school_classes');
     }
-
-    // 削除処理
-    public function destroy($id)
-    {
-        $record = CountSubjectSchoolClass::find($id);
-
-        if (!$record) {
-            return response()->json(['message' => 'データが見つかりません'], 404);
-        }
-
-        $record->delete();
-
-        return response()->json(['message' => 'データを削除しました']);
-    }
-}
+};
