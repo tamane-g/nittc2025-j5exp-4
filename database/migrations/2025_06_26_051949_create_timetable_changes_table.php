@@ -18,24 +18,18 @@ return new class extends Migration
             $table->date('before_date');
             $table->foreignId('before_timetable_id')
                   ->constrained('timetables')
-                  ->onDelete('cascade');
+                  ->cascadeOnDelete();
             
             $table->date('after_date');
             $table->foreignId('after_timetable_id')
                   ->constrained('timetables')
-                  ->onDelete('cascade');
-                  
+                  ->cascadeonDelete();
+            
+            $table->foreignId('room_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('school_class_id')->constrained()->cascadeOnDelete();
+            
             $table->boolean('approval');
             $table->timestamps();
-
-            $table->foreign(['class_room_id'])
-                  ->references(['id'])
-                  ->on('class_rooms')
-                  ->cascadeOnDelete();
-            $table->foreign(['class_room_id'])
-                  ->references(['id'])
-                  ->on('class_rooms')
-                  ->cascadeOnDelete();
         });
     }
 
