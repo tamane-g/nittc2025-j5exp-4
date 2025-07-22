@@ -1,107 +1,229 @@
-import Checkbox from '@/Components/Checkbox';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
-import { PageProps } from '@/types';
+// Pages/LoginStudent.tsx
 
-interface LoginProps extends PageProps {
-    status?: string;
-    canResetPassword: boolean;
+import { Box, Button, Group, Stack, TextInput, Container, Checkbox, Text } from '@mantine/core';
+import { useForm, Link } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
+import { HTMLAttributes } from 'react';
+
+// エラー表示用のコンポーネント
+function InputError({ message, className = '', ...props }: { message?: string } & HTMLAttributes<HTMLParagraphElement>) {
+    return message ? (
+        <p {...props} className={`text-sm text-red-600 ${className}`}>
+            {message}
+        </p>
+    ) : null;
 }
 
-export default function Login({ status, canResetPassword }: LoginProps) {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        email: '',
-        password: '',
-        remember: false,
+// Propsの型定義
+interface LoginProps {
+    status?: string;
+    canResetPassword?: boolean;
+}
+
+// コンポーネント名をLoginStudentに変更
+export default function LoginStudent({ status, canResetPassword }: LoginProps) {
+  const { t } = useTranslation();
+
+  const { data, setData, post, processing, errors, reset } = useForm({
+    email: '',
+    password: '',
+    remember: false as boolean,
+  });
+
+  const submit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // 学生用のログインエンドポイントを想定
+    post('/login', {
+        onFinish: () => reset('password'),
     });
+  };
 
-    const submit: FormEventHandler = (e) => {
-        e.preventDefault();
+  return (
+    <>
+      <Container className="login-container">
+        <Box className="login-header">
+          {/* t('Login.Title') を '学生ログイン' など、より具体的にしても良いでしょう */}
+          {t('Login.Title')}
+        </Box>
 
-        post(route('login'), {
-            onFinish: () => reset('password'),
-        });
-    };
+        {status && <Text className="login-status">{status}</Text>}
 
-    return (
-        <GuestLayout>
-            <Head title="Log in" />
+        <form onSubmit={submit}>
+            <Stack className="login-form">
+                <TextInput
+                    size="lg"
+                    label={t('Login.Email')}
+                    placeholder="your@email.com"
+                    value={data.email}
+                    onChange={(e) => setData('email', e.target.value)}
+                    required
+                    autoFocus
+                    autoComplete="username"
+                />
+                <InputError message={errors.email} />
 
-            {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
+                <TextInput
+                    type="password"
+                    size="lg"
+                    label={t('Login.Password')}
+                    placeholder={t('Login.PasswordPlaceholder')}
+                    value={data.password}
+                    onChange={(e) => setData('password', e.target.value)}
+                    required
+                    autoComplete="current-password"
+                />
+                <InputError message={errors.password} />
 
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="email" value="Email" />
+                <Checkbox
+                    label={t('Login.RememberMe')}
+                    checked={data.remember}
+                    onChange={(event) => setData('remember', event.currentTarget.checked)}
+                />
+            </Stack>
 
-                    <TextInput
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        className="mt-1 block w-full"
-                        autoComplete="username"
-                        isFocused={true}
-                        onChange={(e) => setData('email', e.target.value)}
-                    />
+            <Group className="login-actions">
+                {canResetPassword && (
+                    <Link href="/forgot-password" className="forgot-password-link">
+                        {t('Login.ForgotPassword')}
+                    </Link>
+                )}
+            </Group>
 
-                    <InputError message={errors.email} className="mt-2" />
-                </div>
+            {/* --- ボタンの構成を修正 --- */}
+            <Group className="login-buttons-wrapper">
+                {/* 左下のボタン郡 */}
+                <Group className="bottom-left-buttons">
+                    <Button component={Link} href={'/LoginAdmin'} variant="outline" radius="xs" className="link-button">
+                        管理人
+                    </Button>
+                    <Button component={Link} href={'/LoginTeacher'} variant="outline" radius="xs" className="link-button">
+                        教師
+                    </Button>
+                </Group>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                {/* 右下の送信ボタン */}
+                <Button type="submit" variant="filled" radius="xs" className="submit-button" disabled={processing}>
+                    {t('Login.Submit')}
+                </Button>
+            </Group>
+        </form>
+      </Container>
+      <style>{`
+        .login-container {
+          position: fixed;
+          padding: 0;
+          margin: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .login-header {
+          background-color: var(--mantine-color-blue-filled);
+          height: 100px;
+          width: 500px;
+          top: 0;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 50px;
+          padding: 0 100px;
+        }
+        .login-status {
+            margin-top: 1rem;
+            font-weight: 500;
+            color: var(--mantine-color-green-7);
+        }
+        .login-form {
+          width: 400px;
+          margin-top: 20px;
+          gap: 16px;
+          padding: 10px;
+        }
+        .login-actions {
+            width: 400px;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+        .forgot-password-link {
+            font-size: var(--mantine-font-size-sm);
+            color: var(--mantine-color-gray-6);
+            text-decoration: none;
+        }
+        .forgot-password-link:hover {
+            text-decoration: underline;
+        }
+        .text-sm {
+            font-size: 0.875rem; /* 14px */
+        }
+        .text-red-600 {
+            color: #DC2626;
+        }
 
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="current-password"
-                        onChange={(e) => setData('password', e.target.value)}
-                    />
+        /* --- ボタンのスタイルを修正 --- */
+        .login-buttons-wrapper {
+          position: fixed;
+          bottom: 20px;
+          left: 20px;
+          right: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .bottom-left-buttons {
+          gap: 15px; /* 管理人ボタンと教師ボタンの間隔 */
+        }
+        .link-button {
+          width: 120px;
+          height: 50px;
+        }
+        .submit-button {
+          width: 150px;
+          height: 50px;
+        }
 
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="mt-4 block">
-                    <label className="flex items-center">
-                        <Checkbox
-                            name="remember"
-                            checked={data.remember}
-                            onChange={(e) =>
-                                setData('remember', e.target.checked)
-                            }
-                        />
-                        <span className="ms-2 text-sm text-gray-600">
-                            Remember me
-                        </span>
-                    </label>
-                </div>
-
-                <div className="mt-4 flex items-center justify-end">
-                    {canResetPassword && (
-                        <Link
-                            href={route('password.request')}
-                            className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                        >
-                            Forgot your password?
-                        </Link>
-                    )}
-
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Log in
-                    </PrimaryButton>
-                </div>
-            </form>
-        </GuestLayout>
-    );
+        /* --- モバイル用のスタイルを修正 --- */
+        @media (max-width: 768px) {
+          .login-container {
+            position: static;
+            width: 100%;
+            min-height: 100vh;
+            justify-content: flex-start;
+            padding: 20px;
+            box-sizing: border-box;
+          }
+          .login-header {
+            position: static;
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            font-size: 36px;
+            padding: 15px 20px;
+          }
+          .login-form, .login-actions {
+            width: 100%;
+            max-width: 400px;
+          }
+          .login-buttons-wrapper {
+            position: static;
+            margin-top: 30px;
+            flex-direction: column-reverse; /* 送信ボタンを一番下に */
+            gap: 20px;
+            width: 100%;
+            max-width: 400px;
+          }
+          .bottom-left-buttons {
+            display: flex;
+            flex-direction: row; /* 横並びを維持 */
+            justify-content: space-around;
+            width: 100%;
+            gap: 10px;
+          }
+          .link-button, .submit-button {
+            width: 100%;
+          }
+        }
+      `}</style>
+    </>
+  );
 }
