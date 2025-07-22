@@ -13,13 +13,12 @@ use Inertia\Inertia;
 // ログイン・認証済みのみアクセス可能
 Route::middleware(['auth.any'])->group(function () {
     Route::get('/', HomeController::class)->name('home'); // StudentHome
-    Route::get('/language', [LanguageController::class, 'index'])->name('language.view'); // Language
-    Route::post('/language', [LanguageController::class, 'change'])->name('language.change');
+    Route::get('/language', LanguageController::class)->name('language.view'); // Language
 });
 
 // 認証済み学生のみアクセス可能
 Route::middleware(['auth:student', 'verified'])->group(function () {
-    Route::get('/timetable', [TimetableController::class, 'show'])->name('timetable.view'); // Timetable
+    Route::get('/timetable', [TimetableController::class, 'view'])->name('timetable.view'); // Timetable
     Route::get('/notice', [UserController::class, 'notice'])->name('student.notice'); // StudentNotification
 });
 

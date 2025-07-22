@@ -55,7 +55,6 @@ class TimetableChangeController extends Controller
             'after_date' => 'required|date',
             'after_timetable_id' => 'required|exists:timetables,id',
             'room_id' => 'required|exists:rooms,id',
-            'school_class_id' => 'required|exists:school_classes,id',
         ]);
 
         // 提案された変更後の時間割エントリを取得
@@ -70,8 +69,7 @@ class TimetableChangeController extends Controller
                 $afterTimetableEntry->lesson,
                 $afterTimetableEntry->term,
                 $validated['teacher_id'],
-                $validated['room_id'],
-                $validated['school_class_id']
+                $validated['room_id']
             );
         } catch (ValidationException $e) {
             // 重複エラーが発生した場合、エラーメッセージと共にリダイレクト
@@ -100,7 +98,6 @@ class TimetableChangeController extends Controller
             'timetableChange' => $timetableChange->load([
                 'teacher',
                 'room',
-                'schoolClass',
                 'beforeTimetable',
                 'afterTimetable'
             ]),
