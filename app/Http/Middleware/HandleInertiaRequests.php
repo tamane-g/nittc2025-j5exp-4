@@ -36,4 +36,12 @@ class HandleInertiaRequests extends Middleware
             ],
         ];
     }
+
+    protected $middlewareGroups = [
+    'api' => [
+        \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        'throttle:api',
+        \Illuminate\Routing\Middleware\SubstituteBindings::class,
+    ],
+];//追加したが、但し以下怪しい
 }

@@ -1,54 +1,37 @@
 <?php
 
-namespace App\Http\Controllers;
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use App\Models\Timetable;
-
-use Illuminate\Http\Request;
 
 class TimetableController extends Controller
 {
     public function index(Request $request)
     {
-        $view = Timetable::select([
-            'id',
-            'term',
-            'day',
-            'lesson',
-            'teacher_id',
-            'room_id',
-            'subject_id',
-            'school_class_id',
-        ])->get();
+        $baseDate = $request->query('week');
 
-        return response()->json($view);
-    }
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'term' => 'required|in:semester_1,semester_2,full_year',
-            'day' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday',
-            'lesson' => 'required|integer|min:1|max:10',
-            'teacher_id' => 'required|exists:teachers,id',
-            'room_id' => 'required|exists:rooms,id',
-            'subject_id' => 'required|exists:subjects,id',
-            'school_class_id' => 'required|exists:school_classes,id',
-        ]);
-
-        Timetable::create($validated);
-
-        return response()->json(['message' => '時間割を登録しました']);
-    }
-
-    public function destroy($id)
-    {
-        $timetable = Timetable::find($id);
-
-        if (!$timetable) {
-            return response()->json(['message' => '時間割が見つかりません'], 404);
+        if (!$baseDate) {
+            return response()->json(['error' => '週の開始日を指定してください（例:?week=2025-07-14）'], 400);
         }
 
-        $timetable->delete();
+        $startOfWeek = Carbon::parse($baseDate)->startOfWeek(); // 月曜日
+        $dates = collect();
 
-        return response()->json(['message' => '時間割を削除しました']);
+        // 月〜金の5日分を作成
+        for ($i = 0; $i < 5; $i++) {
+            $dates->push($startOfWeek->copy()->addDays($i)->toDateString());
+        }
+
+        $timetables = Timetable::with(['subject', 'room', 'user'])
+            ->whereIn('day', $dates)
+            ->orderBy('day')
+            ->orderBy('lesson')
+            ->get()
+            ->groupBy([
+                fn($item) => Carbon::parse($item->day)->format('Y-m-d'),
+                'lesson'
+            ]);
+
+        return response()->json($timetables);
     }
 }

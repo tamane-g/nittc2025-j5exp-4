@@ -1,8 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\User;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -12,18 +12,9 @@ use Exception;
 
 class UserController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $User_state = User::select([
-            'name',
-            'email',
-            'password',
-            'school_class_grade',
-            'school_class_class',
-            'email_verified_at',
-        ])->get();
-
-        return response()->json($User_state);
+        return response()->json(User::all());
     }
 
     public function store(Request $request)
@@ -50,13 +41,54 @@ class UserController extends Controller
 
     public function destroy($id)
     {
-        $user = User::find($id);
-
-        if (!$user) {
-            return response()->json(['message' => 'ユーザーが見つかりません'], 404);
-        }
+        $user = User::findOrFail($id);
         $user->delete();
-        return response()->json(['message' => 'ユーザーを削除しました']);
+
+        return response()->json(['message' => 'ユーザー削除完了']);
+    }
+
+    /**
+     * CSVファイルからユーザーをインポートする
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function import(Request $request)
+    {
+        // 1. バリデーション
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt'
+        ]);
+
+        try {
+            // 2. CSVファイルの取得と読み込み
+            $file = $request->file('csv_file');
+            // 'r'は読み込みモード
+            $csv = Reader::createFromPath($file->getPathname(), 'r');
+            // ヘッダー行をキーとして使用する
+            $csv->setHeaderOffset(0);
+
+            $records = $csv->getRecords(['name', 'email', 'type', 'password']);
+
+            // 3. データベースへの登録（トランザクション使用）
+            DB::transaction(function () use ($records) {
+                foreach ($records as $record) {
+                    User::create([
+                        'name' => $record['name'],
+                        'email' => $record['email'],
+                        'password' => Hash::make($record['password']),
+                    ]);
+                }
+            });
+
+        } catch (Exception $e) {
+            // エラーが発生した場合はエラーメッセージを返す
+            return Redirect::route('regist')
+                ->with('error', 'CSVのインポートに失敗しました。ファイル形式を確認してください。エラー: ' . $e->getMessage());
+        }
+
+        // 4. 成功メッセージと共にリダイレクト
+        return Redirect::route('regist')->with('success', 'ユーザーをCSVからインポートしました。');
     }
 
     /**

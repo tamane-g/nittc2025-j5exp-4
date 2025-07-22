@@ -22,11 +22,15 @@ class RoomsController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'id' => 'required|unique:rooms,id',
             'name' => 'required|string|max:50',
+            'is_concurrent' => 'nullable|boolean',
         ]);
 
-        Room::create($validated);
+    Room::create([
+        'name' => $validated['name'],
+        'is_concurrent' => $validated['is_concurrent'] ?? false,
+    ]);
+
 
         return response()->json(['message' => '教室を登録しました']);
     }

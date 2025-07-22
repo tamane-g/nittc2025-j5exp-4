@@ -2,19 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\SchoolClass;
+use Illuminate\Http\Request;
 
 class SchoolClassController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $reference = SchoolClass::with([
-            'grade',
-            'class',
-        ])->get();
-
-        return response()->json($reference);
+        return response()->json(SchoolClass::all());
     }
 
     public function store(Request $request)
@@ -24,23 +19,19 @@ class SchoolClassController extends Controller
             'class' => 'required|integer|min:1|max:10',
         ]);
 
-        SchoolClass::create($validated);
+        $schoolClass = SchoolClass::create($validated);
 
-        return response()->json(['message' => '学級を登録しました']);
+        return response()->json([
+            'message' => 'クラスを登録しました',
+            'school_class' => $schoolClass,
+        ], 201);
     }
 
-    // 学級の削除
     public function destroy($id)
     {
-        $class = SchoolClass::find($id);
-
-         if (!$class) {
-            return response()->json(['message' => '学級が見つかりません'], 404);
-        }
-
+        $class = SchoolClass::findOrFail($id);
         $class->delete();
 
-        return response()->json(['message' => '学級を削除しました']);
+        return response()->json(['message' => 'クラスを削除しました']);
     }
-
 }
