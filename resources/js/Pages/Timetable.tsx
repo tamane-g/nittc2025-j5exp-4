@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Table } from '@mantine/core';
 import { Button } from '@mantine/core';
-import { useNavigate } from 'react-router-dom'; // ← 追加
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 
 const tableData = [
@@ -20,16 +21,18 @@ function getStartOfWeek(date: Date) {
   return d;
 }
 
-function formatDate(date: Date) {
-  return `${date.getMonth() + 1}月${date.getDate()}日`;
+function formatDate(date: Date, t: (key: string) => string) {
+  return `${date.getMonth() + 1}${t('Timetable.month')}${date.getDate()}${t('Timetable.day')}`;
 }
 
 
 export default function Timetable() {
-
-  const navigate = useNavigate(); // ← 追加
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [data] = useState(tableData);
   const [currentMonday, setCurrentMonday] = useState(getStartOfWeek(new Date()));
+
+  const isEnglish = i18n.language === 'en';
 
   const changeWeek = (offset: number) => {
     const newMonday = new Date(currentMonday);
@@ -49,32 +52,34 @@ export default function Timetable() {
         <div className="date-selector">
           <button onClick={() => changeWeek(-1)}>←</button>
           <div>
-            {formatDate(startOfWeek)} 〜 {formatDate(endOfWeek)}
+            {formatDate(startOfWeek, t)} 〜 {formatDate(endOfWeek, t)}
           </div>
           <button onClick={() => changeWeek(1)}>→</button>
-          <div className="top-right-box">5年5組　99番　高専　太郎</div>
+          <div className="top-right-box">5{t('Timetable.year')}5{t('Timetable.class')}　99{t('Timetable.number')}　{t('Timetable.studentName')}</div>
         </div>
       </div>
 
       <div className="back-button-container">
-        <Button variant="filled" size="xl" onClick={() => navigate(-1)} style={{ width: '150px' }}>戻る</Button>
+        <Button variant="filled" size="xl" onClick={() => navigate(-1)} style={{ width: '150px' }}>{t('back')}</Button>
       </div>
 
       <style>{`
         .custom-table {
           table-layout: fixed !important;
-          width: 840px !important; 
+          width: 100% !important; 
+          max-width: 840px;
           border-collapse: collapse;
           margin: 0 auto;
           margin-top: 50px; 
         }
         .custom-table th, .custom-table td {
-          width: 140px; 
+          min-width: 100px; /* width を min-width に変更 */
           height: 90px;
           text-align: center;
           vertical-align: middle;
           border: 1px solid white;
           user-select: none;
+          white-space: nowrap; /* nowrap に戻す */
         }
         .header-black {
           background-color: black !important;
@@ -86,7 +91,10 @@ export default function Timetable() {
           border: 1px solid white;
           text-align: center;
           vertical-align: middle;
-          font-size: 50px;
+          font-size: 50px; /* 元の 50px に戻す */
+        }
+        .header-blue.english {
+          font-size: 20px; /* 英語の場合のフォントサイズ */
         }
         .ag-cell {
           text-align: center;
@@ -155,14 +163,60 @@ export default function Timetable() {
           left: 50px;
           bottom: 70px;
         }
-          
+        
+        @media (max-width: 768px) {
+          .custom-table {
+            margin-top: 20px;
+          }
+          .custom-table th, .custom-table td {
+            width: auto;
+            height: 60px;
+            font-size: 12px;
+          }
+          .header-blue {
+            font-size: 18px;
+          }
+          .ag-cell {
+            font-size: 14px;
+          }
+          .rectangle {
+            height: auto;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+          }
+          .date-selector {
+            font-size: 16px;
+            flex-direction: column;
+            width: 100%;
+            margin: 10px 0 0 0;
+            padding: 10px 0;
+            align-items: center;
+          }
+          .date-selector button {
+            font-size: 18px;
+          }
+          .top-right-box {
+            position: static;
+            margin-top: 10px;
+            font-size: 12px;
+            width: 90%;
+            text-align: center;
+          }
+          .back-button-container {
+            position: static;
+            margin: 20px auto;
+            width: 100%;
+            text-align: center;
+          }
+        }
       `}</style>
 
       <Table className="custom-table">
         <Table.Thead>
           <Table.Tr>
-            {['', '月', '火', '水', '木', '金'].map((header, i) => (
-              <Table.Th key={i} className={i === 0 ? 'header-black' : 'header-blue'}>
+            {[t('Timetable.empty'), t('Timetable.monday'), t('Timetable.tuesday'), t('Timetable.wednesday'), t('Timetable.thursday'), t('Timetable.friday')].map((header, i) => (
+              <Table.Th key={i} className={`${i === 0 ? 'header-black' : 'header-blue'} ${isEnglish ? 'english' : ''}`}>
                 {header}
               </Table.Th>
             ))}

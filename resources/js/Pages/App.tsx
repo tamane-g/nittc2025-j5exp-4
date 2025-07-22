@@ -7,11 +7,13 @@ import AdminHome from './AdminHome';
 import Timetable from './Timetable';
 import TimetableChange from './TimetableChange';
 import TimetableClick from './TimetableClick';
-import Notification from './notification';
+import TeacherNotification from './TeacherNotification';
+import StudentNotification from './StudentNotification';
 import Language from './language';
 import Registration from './registration';
 import Remove from './remove';
 import ManagementScreen from './admin';
+import TimetableSearch from './TimetableSearch'; // 追加
 
 export default function App() {
   return (
@@ -22,13 +24,15 @@ export default function App() {
         <Route path="/timetable" element={<Timetable />} />
         <Route path="/timetableClick" element={<TimetableClick />} />
         <Route path="/timetable-change" element={<TimetableChange />} />
-        <Route path="/notification" element={<Notification />} />
+        <Route path="/teachernotification" element={<TeacherNotification />} />
+        <Route path="/studentnotification" element={<StudentNotification />} />
         <Route path="/language" element={<Language />} />
         <Route path="/studenthome" element={<StudentHome />} />
         <Route path="/AdminHome" element={<AdminHome />} />
         <Route path="/registration" element={<Registration />} />
         <Route path="/remove" element={<Remove />} />
         <Route path="/admin" element={<ManagementScreen />} />
+        <Route path="/timetable-search" element={<TimetableSearch />} /> {/* 追加 */}
       </Routes>
     </HashRouter>
   );

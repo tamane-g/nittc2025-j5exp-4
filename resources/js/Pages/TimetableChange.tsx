@@ -2,7 +2,9 @@
 import { useState } from 'react';
 import { Button } from '@mantine/core';
 import { NativeSelect } from '@mantine/core';
-import { useNavigate } from 'react-router-dom'; // ← 追加
+import { useNavigate } from 'react-router-dom';
+import { useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 
 
 
@@ -14,15 +16,21 @@ function getStartOfWeek(date: Date) {
   return d;
 }
 
-function formatDate(date: Date) {
-  return `${date.getMonth() + 1}月${date.getDate()}日`;
+function formatDate(date: Date, t: (key: string) => string) {
+  return `${date.getMonth() + 1}${t('Timetable.month')}${date.getDate()}${t('Timetable.day')}`;
 }
 
 export default function TimetableChange() {
-
-  const navigate = useNavigate(); // ← 追加
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const [clickedMessage] = useState('');
   const [currentMonday, setCurrentMonday] = useState(getStartOfWeek(new Date()));
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { data, setData, post } = useForm({
+    subjectAfterChange: '',
+    locationAfterChange: '',
+  });
 
   const changeWeek = (offset: number) => {
     const newMonday = new Date(currentMonday);
@@ -30,6 +38,12 @@ export default function TimetableChange() {
     setCurrentMonday(newMonday);
   };
 
+  const handleSubmit = () => {
+    // APIへの送信処理
+    // post('/api/timetable-change', data);
+    console.log('Form data submitted:', data);
+    navigate(-1);
+  };
 
   const startOfWeek = currentMonday;
   const endOfWeek = new Date(startOfWeek);
@@ -43,10 +57,10 @@ export default function TimetableChange() {
         <div className="date-selector">
           <button onClick={() => changeWeek(-1)}>←</button>
           <div>
-            {formatDate(startOfWeek)} 〜 {formatDate(endOfWeek)}
+            {formatDate(startOfWeek, t)} 〜 {formatDate(endOfWeek, t)}
           </div>
           <button onClick={() => changeWeek(1)}>→</button>
-          <div className="top-right-box">情報教員　高専　哲郎</div>
+          <div className="top-right-box">{t('TimetableChange.teacherName')}</div>
         </div>
       </div>
 
@@ -58,31 +72,32 @@ export default function TimetableChange() {
 
       <div className="row-container">
         <div className="split-box">
-          <div className="left-half">変更前</div>
-          <div className="right-half">国語</div>
+          <div className="left-half">{t('TimetableChange.beforeChange')}</div>
+          <div className="right-half">{t('TimetableChange.japanese')}</div>
         </div>
         <div className="select-box">
-          <div className="left-select">変更後</div>
+          <div className="left-select">{t('TimetableChange.afterChange')}</div>
           <NativeSelect size="xl" className="right-select" radius="0"
             data={[
               {
-                group: '一般教科',
+                group: t('TimetableChange.generalSubjects'),
                 items: [
-                  { label: '国語', value: 'Japanese' },
-                  { label: '英語', value: 'English' },
-                  { label: '数学', value: 'math' },
+                  { label: t('TimetableChange.japanese'), value: 'Japanese' },
+                  { label: t('TimetableChange.english'), value: 'English' },
+                  { label: t('TimetableChange.math'), value: 'math' },
                 ],
               },
               {
-                group: '専門教科',
+                group: t('TimetableChange.specializedSubjects'),
                 items: [
-                  { label: 'プログラミング', value: 'express' },
-                  { label: '論理回路', value: 'koa' },
-                  { label: '実験', value: 'django' },
+                  { label: t('TimetableChange.programming'), value: 'express' },
+                  { label: t('TimetableChange.logicCircuit'), value: 'koa' },
+                  { label: t('TimetableChange.experiment'), value: 'django' },
                 ],
               },
             ]}
-            style={{ width: 280 }}
+            value={data.subjectAfterChange}
+            onChange={(event) => setData('subjectAfterChange', event.currentTarget.value)}
           />
         </div>
       </div>
@@ -90,48 +105,49 @@ export default function TimetableChange() {
 
       <div className="row-container">
         <div className="split-box">
-          <div className="left-half">置換者</div>
-          <div className="right-half">管理人　太郎</div>
+          <div className="left-half">{t('TimetableChange.replacer')}</div>
+          <div className="right-half">{t('TimetableChange.replacerName')}</div>
         </div>
         <div className="right-box">
-          <div className="left-half">申請者</div>
-          <div className="right-half">高専　哲郎</div>
+          <div className="left-half">{t('TimetableChange.applicant')}</div>
+          <div className="right-half">{t('TimetableChange.applicantName')}</div>
         </div>
       </div>
 
 
       <div className="row-container">
         <div className="split-box">
-          <div className="left-half">日付</div>
-          <div className="right-half">○月○日</div>
+          <div className="left-half">{t('TimetableChange.date')}</div>
+          <div className="right-half">{t('TimetableChange.datePlaceholder')}</div>
         </div>
         <div className="select-box">
-          <div className="left-select">場所</div>
+          <div className="left-select">{t('TimetableChange.location')}</div>
           <NativeSelect size="xl" className="right-select" radius="0"
             data={[
               { label: '5-5', value: 'class-room' },
-              { label: '実習室', value: 'Practice-room' },
-              { label: '体育館', value: 'gym' }
+              { label: t('TimetableChange.practiceRoom'), value: 'Practice-room' },
+              { label: t('TimetableChange.gym'), value: 'gym' }
             ]}
-            style={{ width: 280 }}
             rightSection={null}
+            value={data.locationAfterChange}
+            onChange={(event) => setData('locationAfterChange', event.currentTarget.value)}
           />
         </div>
       </div>
 
 
-      <div className="split-box" style={{ marginTop: '50px' }}>
-        <div className="left-half">時間</div>
-        <div className="right-half">〇時間目</div>
+      <div className="split-box time-box" style={{ marginTop: '50px' }}>
+        <div className="left-half">{t('TimetableChange.time')}</div>
+        <div className="right-half">{t('TimetableChange.timePlaceholder')}</div>
       </div>
 
 
       <div className="back-button-container">
-        <Button variant="filled" size="xl" onClick={() => navigate(-1)} style={{ width: '150px' }}>戻る</Button>
+        <Button variant="filled" size="xl" onClick={() => navigate(-1)} style={{ width: '150px' }}>{t('back')}</Button>
       </div>
 
       <div className="send-button-container">
-        <Button variant="filled" size="xl" onClick={() => navigate(-1)} style={{ width: '150px' }}>送信</Button>
+        <Button variant="filled" size="xl" onClick={handleSubmit} style={{ width: '150px' }}>{t('TimetableChange.send')}</Button>
       </div>
 
 
@@ -243,6 +259,7 @@ export default function TimetableChange() {
       .select-box {
        display: flex;
        height: 70px;
+       width: 400px; /* Added for consistent width */
       }
 
       .left-select {
@@ -259,6 +276,10 @@ export default function TimetableChange() {
         border-bottom: 2px solid black;
       }
 
+      .right-select { /* Added for consistent width */
+        width: 280px;
+      }
+
       .right-select select {
         border: 2px solid black;
         height: 70px !important;
@@ -272,6 +293,64 @@ export default function TimetableChange() {
         -webkit-appearance: none;
         -moz-appearance: none;
         background: none;
+      }
+
+      @media (max-width: 768px) {
+        .rectangle {
+          height: auto;
+          padding: 10px;
+          flex-direction: column;
+          align-items: center;
+        }
+        .date-selector {
+          font-size: 18px;
+          flex-direction: column;
+          width: 100%;
+          margin: 10px 0 0 0;
+          padding: 10px 0;
+          align-items: center;
+        }
+        .top-right-box {
+          position: static;
+          margin-top: 10px;
+          width: 90%;
+          font-size: 16px;
+          text-align: center;
+        }
+        .row-container {
+          flex-direction: column;
+          gap: 20px;
+          margin-top: 20px;
+          align-items: center;
+        }
+        .split-box, .right-box, .select-box {
+          width: 90%;
+          max-width: 600px;
+          font-size: 18px; /* Adjusted font size for labels */
+          height: 60px;
+          margin-left: 0; /* Remove fixed margin */
+        }
+        /* Ensure input elements within these boxes are also styled */
+        .split-box .right-half, .right-box .right-half {
+          font-size: 16px; /* Adjusted font size for text in right half of split/right boxes */
+        }
+        .select-box .right-select select {
+          font-size: 16px !important; /* Adjusted font size for select input */
+          height: 60px !important;
+        }
+        .time-box {
+          margin-top: 20px; /* Adjust margin for time box */
+          width: 90%; /* Ensure it takes full width */
+        }
+        .back-button-container, .send-button-container {
+          position: static;
+          width: 100%;
+          margin-top: 20px;
+          text-align: center;
+        }
+        .back-button-container button, .send-button-container button {
+          width: 80%;
+        }
       }
           
       `}</style>

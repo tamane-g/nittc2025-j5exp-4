@@ -3,16 +3,19 @@
 import React from 'react';
 import { Box, Button } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function TeacherHome() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
   const buttonConfigs = [
-    { label: '時間割', path: '/timetable' },
-    { label: '変更申請', path: '/timetableClick' },
-    { label: '通知', path: '/notification' },
-    { label: '言語設定', path: '/language' },
-    { label: 'ログアウト', path: '/' },
+    { label: t('TeacherHome.timetable'), path: '/timetable' },
+    { label: t('TeacherHome.changeRequest'), path: '/timetableClick' }, // 元の変更申請画面
+    
+    { label: t('TeacherHome.notification'), path: '/teachernotification' },
+    { label: t('TeacherHome.languageSettings'), path: '/language' },
+    { label: t('TeacherHome.logout'), path: '/' },
   ];
 
   const buttonStyle = {
@@ -37,24 +40,68 @@ export default function TeacherHome() {
           justifyContent: 'center',
         }}
       >
-        ホーム
+        {t('Home')}
       </Box>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', padding: 130, paddingLeft: 40 }}>
+            <div
+        className={`button-container ${i18n.language === 'en' ? 'lang-en' : ''}`}
+      >
         {buttonConfigs.map((btn, index) => (
           <Button
             key={index}
             variant="filled"
             radius="lg"
-            onClick={() => navigate(btn.path)}
+            onClick={() => {
+              if (btn.label === t('TeacherHome.logout')) {
+                i18n.changeLanguage('ja');
+              }
+              navigate(btn.path);
+            }}
+            className="home-button"
             style={{
-              ...buttonStyle,
-              fontSize: btn.label === 'ログアウト' ? '25px' : buttonStyle.fontSize,
+              fontSize:
+                i18n.language === 'en' && btn.label === t('TeacherHome.languageSettings')
+                  ? '18px' // 英語のLanguage Settingsのフォントサイズ
+                  : btn.label === t('TeacherHome.logout')
+                  ? '25px'
+                  : buttonStyle.fontSize,
             }}
           >
             {btn.label}
           </Button>
         ))}
       </div>
+      <style>{`
+        .button-container {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 20px;
+          padding: 130px 40px;
+        }
+        .home-button {
+          height: 150px; /* 日本語表示時の元の高さ */
+          width: 160px;
+          font-size: 28px;
+        }
+        .lang-en .home-button {
+          height: 190px; /* 英語表示時の高さ */
+          width: 230px; /* 英語表示時の幅 */
+          font-size: 18px; /* 英語表示時のフォントサイズ */
+          white-space: normal !important; /* テキストの折り返しを強制 */
+          word-break: break-word !important; /* 単語の途中で改行を強制 */
+        }
+        @media (max-width: 768px) {
+          .button-container {
+            flex-direction: column;
+            align-items: center;
+            padding: 120px 20px;
+          }
+          .home-button {
+            width: 80%;
+            height: 80px;
+            font-size: 22px;
+          }
+        }
+      `}</style>
     </div>
   );
 }
