@@ -40,7 +40,7 @@ export default function LoginStudent({ status, canResetPassword }: LoginProps) {
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // 学生用のログインエンドポイントにPOST
-    post('/login', { //  ルート定義に合わせて '/login' に修正
+    post('/student/login', { //  ルート定義に合わせて '/login' に修正
       onFinish: () => reset('password'),
     });
   };
