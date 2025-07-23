@@ -143,7 +143,152 @@ export default function Timetable() {
 
       {/* --- CSSスタイルは省略 --- */}
       <style>{`
-        /* ... */
+        .custom-table {
+          table-layout: fixed !important;
+          width: 100% !important; 
+          max-width: 840px;
+          border-collapse: collapse;
+          margin: 0 auto;
+          margin-top: 50px; 
+        }
+        .custom-table th, .custom-table td {
+          min-width: 100px; /* width を min-width に変更 */
+          height: 90px;
+          text-align: center;
+          vertical-align: middle;
+          border: 1px solid white;
+          user-select: none;
+          white-space: nowrap; /* nowrap に戻す */
+        }
+        .header-black {
+          background-color: black !important;
+          border: 1px solid white;
+        }
+        .header-blue {
+          background-color: rgb(12, 106, 207) !important;
+          color: white !important;
+          border: 1px solid white;
+          text-align: center;
+          vertical-align: middle;
+          font-size: 50px; /* 元の 50px に戻す */
+        }
+        .header-blue.english {
+          font-size: 20px; /* 英語の場合のフォントサイズ */
+        }
+        .ag-cell {
+          text-align: center;
+          user-select: none;
+          font-size: 30px;
+        }       
+        .ag-cell[col-id="idColumn"] {
+          background-color: rgb(190, 190, 190) !important;
+        }        
+        .highlight-cell-odd {
+          background-color: rgb(190, 209, 255) !important;
+        }      
+        .highlight-cell-even {
+          background-color: rgb(219, 223, 255) !important;
+        }
+
+        .rectangle {
+          position: relative;
+          width: 100%;
+          height: 120px;
+          background-color: rgb(12, 106, 207) !important;
+          margin-bottom: 10px;
+          display: flex;               
+          align-items: flex-start;    
+        }
+
+        .date-selector {
+          background-color: white;
+          padding: 10px 10px;
+          display: flex;
+          gap: 10px;
+          font-weight: bold;
+          font-size: 30px;
+          margin-bottom: 10px;
+          width: fit-content;
+          margin-top: 20px;
+          margin-Left: 20px;
+          border: 2px solid black;
+          
+        }
+        .date-selector button {
+          font-size: 30px;
+          cursor: pointer;
+          background: transparent;
+          border: none;
+          padding: 0 20px;
+        }
+        .top-right-box {
+          position: absolute;
+          top: 25px;
+          right: 30px;
+          height: 60px;  /* ← 高さは必要なら固定 */
+          background-color: white;
+          border: 2px solid black;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 20px;
+          font-weight: bold;
+          padding: 0 20px;  
+          box-sizing: border-box; 
+        }
+
+        .back-button-container {
+          position: absolute;
+          left: 50px;
+          bottom: 70px;
+        }
+        
+        @media (max-width: 768px) {
+          .custom-table {
+            margin-top: 20px;
+          }
+          .custom-table th, .custom-table td {
+            width: auto;
+            height: 60px;
+            font-size: 12px;
+          }
+          .header-blue {
+            font-size: 18px;
+          }
+          .ag-cell {
+            font-size: 14px;
+          }
+          .rectangle {
+            height: auto;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+          }
+          .date-selector {
+            font-size: 16px;
+            flex-direction: column;
+            width: 100%;
+            margin: 10px 0 0 0;
+            padding: 10px 0;
+            align-items: center;
+          }
+          .date-selector button {
+            font-size: 18px;
+          }
+          .top-right-box {
+            position: static;
+            margin-top: 10px;
+            font-size: 12px;
+            width: 90%;
+            text-align: center;
+          }
+          .back-button-container {
+            position: static;
+            margin: 20px auto;
+            width: 100%;
+            text-align: center;
+          }
+        }
       `}</style>
     </>
   );

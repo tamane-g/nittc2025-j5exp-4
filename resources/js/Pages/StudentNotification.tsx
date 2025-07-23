@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Container,
-  Table,
-  Button,
-  Group,
-} from '@mantine/core';
+// resources/js/Pages/StudentNotification.tsx
+
+import React ,{ useState, useEffect } from 'react';
+import { Box, Container, Table, Button, Group } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { Link } from '@inertiajs/react';
+// Linkコンポーネントは「戻る」ボタンには不要になります
+// import { Link } from '@inertiajs/react';
 
+// --- データ型定義 ---
 interface TimetableEntry {
   subject: { name: string };
   room: { name: string };
@@ -17,79 +15,97 @@ interface TimetableEntry {
 }
 
 interface ClassChange {
+  id: number; // データの識別用にIDを追加
   before_date: string;
-  before_timetable: TimetableEntry;
+  before_period: number;
   after_date: string;
+  after_period: number;
+  before_timetable: TimetableEntry;
   after_timetable: TimetableEntry;
 }
 
-// 表示する授業変更のデータ
+// --- メインコンポーネント ---
 export default function StudentNotification() {
-  const { t } = useTranslation();
+  // 1. 'notification'と'common'の名前空間を指定
+  const { t, i18n } = useTranslation(['notification', 'common']);
   const [classChanges, setClassChanges] = useState<ClassChange[]>([]);
 
+  // --- データ取得ロジック ---
   useEffect(() => {
     const fetchStudentNotifications = async () => {
       try {
-        const response = await axios.get('/notice');
-        setClassChanges(response.data);
+        // const response = await axios.get('/api/student/notifications');
+        // setClassChanges(response.data);
+
+        // モックデータ (API実装まで)
+        const mockData: ClassChange[] = [
+          {
+            id: 1,
+            before_date: '2025/07/21',
+            before_period: 3,
+            after_date: '2025/07/21',
+            after_period: 3,
+            before_timetable: { subject: { name: t('student.realtimeOSEngineering', { ns: 'notification' }) }, user: { name: '田中' }, room: { name: '4-1' } },
+            after_timetable: { subject: { name: t('student.embeddedSystemsOverview', { ns: 'notification' }) }, user: { name: '佐藤' }, room: { name: '講義室A' } },
+          },
+        ];
+        setClassChanges(mockData);
+
       } catch (error) {
         console.error("Error fetching student notifications:", error);
       }
     };
     fetchStudentNotifications();
-  }, []);
+  }, [i18n.language, t]); // 言語が変更されたらデータを再設定
 
-  // テーブルヘッダーの定義
-  const tableHeaders = [t('StudentNotification.date'), t('StudentNotification.period'), t('StudentNotification.before'), t('StudentNotification.after')];
-
-  // テーブルの行を生成
-  const rows = classChanges.map((item, index) => (
-    <Table.Tr key={index}>
-      <Table.Td>{item.before_date}</Table.Td>
-      <Table.Td>{`${item.before_timetable.subject.name} (${item.before_timetable.user.name}先生) - ${item.before_timetable.room.name}`}</Table.Td>
-      <Table.Td>{`${item.after_timetable.subject.name} (${item.after_timetable.user.name}先生) - ${item.after_timetable.room.name}`}</Table.Td>
-    </Table.Tr>
-  ));
+  // --- テーブルヘッダー ---
+  const tableHeaders = [
+    t('student.date', { ns: 'notification' }),
+    t('student.period', { ns: 'notification' }),
+    t('student.before', { ns: 'notification' }),
+    t('student.after', { ns: 'notification' }),
+  ];
 
   return (
     <Container className="notification-container">
-      {/* ヘッダー */}
-      <Box
-        component="header"
-        className="notification-header"
-      >
-        {t('StudentNotification.title')}
+      <Box component="header" className="notification-header">
+        {/* 2. キーを修正 */}
+        {t('student.title', { ns: 'notification' })}
       </Box>
 
-      {/* 授業変更テーブル */}
-      <Table
-        mt="md"
-        withTableBorder
-        className="notification-table"
-      >
+      <Table mt="md" withTableBorder className="notification-table">
         <Table.Thead>
           <Table.Tr>
             {tableHeaders.map((header) => (
-              <Table.Th key={header}>
-                {header}
-              </Table.Th>
+              <Table.Th key={header}>{header}</Table.Th>
             ))}
           </Table.Tr>
         </Table.Thead>
-        <Table.Tbody>{rows}</Table.Tbody>
+        <Table.Tbody>
+          {classChanges.map((item) => (
+            <Table.Tr key={item.id}>
+              <Table.Td>{item.before_date}</Table.Td>
+              <Table.Td>{item.before_period}</Table.Td>
+              <Table.Td>
+                {`${item.before_timetable.subject.name} (${item.before_timetable.user.name}${t('teacherSuffix', { ns: 'common' })}) - ${item.before_timetable.room.name}`}
+              </Table.Td>
+              <Table.Td>
+                {`${item.after_timetable.subject.name} (${item.after_timetable.user.name}${t('teacherSuffix', { ns: 'common' })}) - ${item.after_timetable.room.name}`}
+              </Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
       </Table>
 
-      {/* 戻るボタン */}
       <Group className="back-button-group">
+        {/* 3. 直前のページに戻るボタンに変更 */}
         <Button
-          component={Link}
-          href={'/'}
+          onClick={() => window.history.back()}
           variant="filled"
           radius="xs"
           className="back-button"
         >
-          {t('back')}
+          {t('back', { ns: 'common' })}
         </Button>
       </Group>
       <style>{`
