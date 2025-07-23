@@ -4,7 +4,6 @@ import { Box, Button, Group, Stack, TextInput, Container, Checkbox, Text } from 
 import { useForm, Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { HTMLAttributes, useEffect } from 'react';
-import '../../i18n';
 
 // エラー表示用のコンポーネント
 function InputError({ message, className = '', ...props }: { message?: string } & HTMLAttributes<HTMLParagraphElement>) {
@@ -41,13 +40,8 @@ export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // 学生用のログインエンドポイントを想定
-<<<<<<< HEAD
     post('/admin/login', {
       onFinish: () => reset('password'),
-=======
-    post('/login', {
-      onFinish: () => reset('password'),
->>>>>>> c886975 (CSVファイル送信できるようになりました!)
     });
   };
 
@@ -62,136 +56,65 @@ export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
         {status && <Text className="login-status">{status}</Text>}
 
         <form onSubmit={submit}>
-<<<<<<< HEAD
-            <Stack className="login-form">
-                <TextInput
-                    size="lg"
-                    label={t('username')}
-                    placeholder="your@email.com"
-                    value={data.email}
-                    onChange={(e) => setData('email', e.target.value)}
-                    required
-                    autoFocus
-                    autoComplete="username"
-                />
-                <InputError message={errors.email} />
-
-                <TextInput
-                    type="password"
-                    size="lg"
-                    label={t('password')}
-                    placeholder={t('passwordPlaceholder')}
-                    value={data.password}
-                    onChange={(e) => setData('password', e.target.value)}
-                    required
-                    autoComplete="current-password"
-                />
-                <InputError message={errors.password} />
-
-                <Checkbox
-                    // login.jsonのキーに合わせて 'rememberMe' などに変更してください
-                    label={t('rememberMe', 'Remember me')} // 'rememberMe'キーと、見つからない場合のデフォルトテキスト
-                    checked={data.remember}
-                    onChange={(event) => setData('remember', event.currentTarget.checked)}
-                />
-            </Stack>
-
-            <Group className="login-buttons-wrapper">
-                <Group className="bottom-left-buttons">
-                    <Link href="/student/login" as="button">
-                        <Button variant="outline" radius="xs" className="link-button">
-                            生徒
-                        </Button>
-                    </Link>
-                    <Link href="/teacher/login" as="button">
-                        <Button variant="outline" radius="xs" className="link-button">
-                            教師
-                        </Button>
-                    </Link>
-                    <Button component="span" variant="outline" radius="xs" className="link-button" disabled>
-                      管理人
-                    </Button>
-                </Group>
-
-                <Button type="submit" variant="filled" radius="xs" className="submit-button" disabled={processing}>
-                    {t('submit')}
-=======
           <Stack className="login-form">
-          <TextInput
-            size="lg"
-            label={t('Login.Email')}
-            placeholder="your@email.com"
-            value={data.email}
-            onChange={(e) => setData('email', e.target.value)}
-            required
-            autoFocus
-            autoComplete="username"
-          />
-          <InputError message={errors.email} />
+            <TextInput
+              size="lg"
+              label={t('username')}
+              placeholder="your@email.com"
+              value={data.email}
+              onChange={(e) => setData('email', e.target.value)}
+              required
+              autoFocus
+              autoComplete="username"
+            />
+            <InputError message={errors.email} />
 
-          <TextInput
-            type="password"
-            size="lg"
-            label={t('Login.Password')}
-            placeholder={t('Login.PasswordPlaceholder')}
-            value={data.password}
-            onChange={(e) => setData('password', e.target.value)}
-            required
-            autoComplete="current-password"
-          />
-          <InputError message={errors.password} />
+            <TextInput
+              type="password"
+              size="lg"
+              label={t('password')}
+              placeholder={t('passwordPlaceholder')}
+              value={data.password}
+              onChange={(e) => setData('password', e.target.value)}
+              required
+              autoComplete="current-password"
+            />
+            <InputError message={errors.password} />
 
-          <Checkbox
-            label={t('Login.RememberMe')}
-            checked={data.remember}
-            onChange={(event) => setData('remember', event.currentTarget.checked)}
-          />
-        </Stack>
+            <Checkbox
+              // login.jsonのキーに合わせて 'rememberMe' などに変更してください
+              label={t('rememberMe', 'Remember me')} // 'rememberMe'キーと、見つからない場合のデフォルトテキスト
+              checked={data.remember}
+              onChange={(event) => setData('remember', event.currentTarget.checked)}
+            />
+          </Stack>
 
-        <Group className="login-actions">
-          {canResetPassword && (
-            <Link href="/forgot-password" className="forgot-password-link">
-              {t('Login.ForgotPassword')}
-            </Link>
-          )}
-        </Group>
-
-        {/* --- ボタンの構成を修正 --- */}
-        <Group className="login-buttons-wrapper">
-          {/* 左下のボタン郡 */}
-          <Group className="bottom-left-buttons">
-            {/* ▼▼▼ ここから修正 ▼▼▼ */}
-            {/* 現在のページなので非活性にするか、スタイルを変えるとより親切です */}
-            <Link href="/student/login" as="button">
-              <Button variant="outline" radius="xs" className="link-button">
-                生徒
->>>>>>> c886975 (CSVファイル送信できるようになりました!)
+          <Group className="login-buttons-wrapper">
+            <Group className="bottom-left-buttons">
+              <Link href="/student/login" as="button">
+                <Button variant="outline" radius="xs" className="link-button">
+                  生徒
+                </Button>
+              </Link>
+              <Link href="/teacher/login" as="button">
+                <Button variant="outline" radius="xs" className="link-button">
+                  教師
+                </Button>
+              </Link>
+              <Button component="span" variant="outline" radius="xs" className="link-button" disabled>
+                管理人
               </Button>
-            </Link>
-            {/* InertiaのLinkコンポーネントを使用してページ遷移 */}
-            <Link href="/teacher/login" as="button">
-              <Button variant="outline" radius="xs" className="link-button">
-                教師
-              </Button>
-            </Link>
+            </Group>
 
-            <Button component="span" variant="outline" radius="xs" className="link-button" disabled>
-              管理人
+            <Button type="submit" variant="filled" radius="xs" className="submit-button" disabled={processing}>
+              {t('submit')}
             </Button>
-
-            {/* ▲▲▲ ここまで修正 ▲▲▲ */}
           </Group>
+        </form>
+      </Container>
 
-          {/* 右下の送信ボタン */}
-          <Button type="submit" variant="filled" radius="xs" className="submit-button" disabled={processing}>
-            {t('Login.Submit')}
-          </Button>
-        </Group>
-      </form>
-    </Container>
-
-  {/* --- CSSスタイル --- */ }
-  <style>{`
+      {/* --- CSSスタイル --- */}
+      <style>{`
         .login-container {
           position: fixed;
           padding: 0;
@@ -213,9 +136,9 @@ export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
           padding: 0 100px;
         }
         .login-status {
-            margin-top: 1rem;
-            font-weight: 500;
-            color: var(--mantine-color-green-7);
+          margin-top: 1rem;
+          font-weight: 500;
+          color: var(--mantine-color-green-7);
         }
         .login-form {
           width: 400px;
@@ -224,23 +147,23 @@ export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
           padding: 10px;
         }
         .login-actions {
-            width: 400px;
-            justify-content: flex-end;
-            margin-top: 10px;
+          width: 400px;
+          justify-content: flex-end;
+          margin-top: 10px;
         }
         .forgot-password-link {
-            font-size: var(--mantine-font-size-sm);
-            color: var(--mantine-color-gray-6);
-            text-decoration: none;
+          font-size: var(--mantine-font-size-sm);
+          color: var(--mantine-color-gray-6);
+          text-decoration: none;
         }
         .forgot-password-link:hover {
-            text-decoration: underline;
+          text-decoration: underline;
         }
         .text-sm {
-            font-size: 0.875rem; /* 14px */
+          font-size: 0.875rem; /* 14px */
         }
         .text-red-600 {
-            color: #DC2626;
+          color: #DC2626;
         }
 
         .login-buttons-wrapper {
