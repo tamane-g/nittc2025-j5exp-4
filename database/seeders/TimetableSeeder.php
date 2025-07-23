@@ -21,8 +21,9 @@ class TimetableSeeder extends Seeder
     {
         // --- 準備: 関連するモデルのテストデータを準備 ---
         $schoolClass = SchoolClass::firstOrCreate(
-            ['grade' => 1],
+            ['id' => 1],
             [
+                'grade'=> 1,
                 'class'=> 1,
             ]
         );

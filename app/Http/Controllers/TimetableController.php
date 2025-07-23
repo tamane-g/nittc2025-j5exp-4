@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Room;
+use App\Models\SchoolClass;
+use App\Models\Subject;
+use App\Models\Teacher;
 use App\Models\Timetable;
 use App\Models\TimetableChange; // TimetableChangeモデルをインポート
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth; // Authファサードをインポート
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
@@ -24,102 +27,80 @@ class TimetableController extends Controller
      */
     public function view(Request $request): Response
     {
-        // 1. ログイン中の学生ユーザーを取得
-        $student = Auth::user();
+        $student = auth('student')->user();
+        $classId = $student->schoolClass->id;
+        $date = Carbon::parse($request->input('date', now()));
+        $monday = $date->copy()->startOfWeek(Carbon::MONDAY);
+        $friday = $monday->copy()->addDays(4);
+        $baseTimetable = Timetable::where('school_class_id', $classId)
+                         ->with(['room', 'schoolClass', 'subject', 'teacher'])
+                         ->get();
+        $timetableChanges = TimetableChange::where('approval', true)
+                            ->where(function ($query) use ($monday, $friday) {
+                                $query->whereBetween('before_date', [$monday, $friday])
+                                      ->orWhereBetween('after_date', [$monday, $friday]);
+                            })
+                            ->with(['beforeTimetable', 'afterTimetable'])
+                            ->get();
 
-        // 学生にクラスが割り当てられているか確認
-        if (!$student || !$student->school_class_id) {
-            return Redirect::route('home')->with('error', 'クラスが割り当てられていません。');
+        $matchedTimetableChanges = [];
+        foreach ($timetableChanges as $change) {
+            if ($change->before_date->between($monday, $friday)) {
+                $matchedTimetableChanges[] = [
+                    $change->beforeTimetable,
+                    $change->afterTimetable,
+                ];
+            }
+            if ($change->after_date->between($monday, $friday)) {
+                $matchedTimetableChanges[] = [
+                    $change->afterTimetable,
+                    $change->beforeTimetable,
+                ];
+            }
         }
-        $schoolClassId = $student->school_class_id;
 
-        // 2. 日付の検証（dateは任意、なければ今日の日付をデフォルトに）
-        $validated = $request->validate([
-            'date' => 'nullable|date_format:Y-m-d',
-        ]);
-        $dateInput = $validated['date'] ?? Carbon::today()->toDateString();
-        $targetDate = Carbon::parse($dateInput);
+        $days = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday');
+        $lessons = array('lesson_1', 'lesson_2', 'lesson_3', 'lesson_4');
+        $timetable = [];
+        foreach ($days as $day) {
+            foreach ($lessons as $lesson) {
+                $timetable[$day][$lesson] = [];
+            }
+        }
 
+        $cloneTimetable = clone $baseTimetable;
+        foreach ($matchedTimetableChanges as $change) {
+            $changed = $change[1];
 
-        // 3. 対象となる週の月曜日と金曜日を計算
-        $startOfWeek = $targetDate->copy()->startOfWeek(Carbon::MONDAY);
-        $endOfWeek = $targetDate->copy()->endOfWeek(Carbon::FRIDAY);
-
-        // 4. 基本となる時間割テンプレートを取得（ログイン中の学生のクラスのもの）
-        $baseTimetables = Timetable::with(['subject', 'room', 'teacher'])
-            ->where('school_class_id', $schoolClassId)
-            ->get()
-            ->keyBy(function ($item) {
-                return $item->day . '-' . $item->lesson;
+            $key = $baseTimetable->search(function ($item) use ($change) {
+                return $item->id == $change[0]->id;
             });
 
-        // 5. 指定された週に影響する、承認済みの時間割変更を取得
-        $approvedChanges = TimetableChange::with(['beforeTimetable.subject', 'beforeTimetable.teacher', 'afterTimetable.subject', 'afterTimetable.teacher'])
-            ->where('approval', true)
-            ->where(function ($query) use ($startOfWeek, $endOfWeek) {
-                $query->whereBetween('before_date', [$startOfWeek, $endOfWeek])
-                      ->orWhereBetween('after_date', [$startOfWeek, $endOfWeek]);
-            })
-            ->get();
-
-        // 6. 変更を適用するための処理
-        $cancellations = [];
-        $additions = [];
-
-        foreach ($approvedChanges as $change) {
-            if ($change->before_date >= $startOfWeek->toDateString() && $change->before_date <= $endOfWeek->toDateString()) {
-                $key = $change->before_date . '-' . $change->beforeTimetable->day . '-' . $change->beforeTimetable->lesson;
-                $cancellations[$key] = true;
-            }
-            if ($change->after_date >= $startOfWeek->toDateString() && $change->after_date <= $endOfWeek->toDateString()) {
-                $key = $change->after_date . '-' . $change->afterTimetable->day . '-' . $change->afterTimetable->lesson;
-                $additions[$key] = $change;
+            if ($key !== false) {
+                $cloneTimetable[$key]->room = $changed->room;
+                $cloneTimetable[$key]->schoolClass = $changed->schoolClass;
+                $cloneTimetable[$key]->subject = $changed->subject;
+                $cloneTimetable[$key]->teacher = $changed->teacher;
             }
         }
 
-        // 7. 最終的な週間時間割を構築
-        $weeklyTimetable = [];
-        $currentDay = $startOfWeek->copy();
-        $daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-        $lessons = ['lesson_1', 'lesson_2', 'lesson_3', 'lesson_4'];
-
-        foreach ($daysOfWeek as $dayName) {
-            $dateStr = $currentDay->toDateString();
-            $dailyLessons = [];
-            foreach ($lessons as $lessonName) {
-                $slot = [
-                    'day' => $dayName,
-                    'lesson' => $lessonName,
-                    'date' => $dateStr,
-                    'entry' => null,
-                    'is_changed' => false,
-                ];
-
-                $additionKey = $dateStr . '-' . $dayName . '-' . $lessonName;
-                $cancellationKey = $dateStr . '-' . $dayName . '-' . $lessonName;
-                $baseKey = $dayName . '-' . $lessonName;
-
-                if (isset($additions[$additionKey])) {
-                    // ★★★ ここが修正点 ★★★
-                    // 追加されるコマには、移動「元」の授業内容(beforeTimetable)をセットする
-                    $slot['entry'] = $additions[$additionKey]->beforeTimetable;
-                    $slot['is_changed'] = true;
-                } elseif (isset($cancellations[$cancellationKey])) {
-                    $slot['is_changed'] = true;
-                } elseif (isset($baseTimetables[$baseKey])) {
-                    $slot['entry'] = $baseTimetables[$baseKey];
-                }
-                
-                $dailyLessons[$lessonName] = $slot;
-            }
-            $weeklyTimetable[$dayName] = $dailyLessons;
-            $currentDay->addDay();
+        foreach ($cloneTimetable as $t) {
+            $timetable[$t->day][$t->lesson] = [
+                'room' => $t->room,
+                'school_class' => $t->schoolClass,
+                'subject' => $t->subject,
+                'teacher'=> $t->teacher,
+            ];
         }
 
         return Inertia::render('Timetable', [
-            'weeklyTimetable' => $weeklyTimetable,
-            'startDate' => $startOfWeek->toDateString(),
-            'endDate' => $endOfWeek->toDateString(),
+            'user'=> $student,
+            'date'=> $date,
+            'monday'=> $monday,
+            'friday'=> $friday,
+            'beforett' => $baseTimetable,
+            'aftertt' => $cloneTimetable,
+            'timetable' => $timetable,
         ]);
     }
 

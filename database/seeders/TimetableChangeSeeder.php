@@ -6,7 +6,8 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\TimetableChange;
 use App\Models\Timetable;
-use App\Models\User; // 教師役としてUserモデルを使用
+use App\Models\Teacher;
+use App\Models\SchoolClass;
 use Carbon\Carbon; // 日付操作のためにCarbonをインポート
 
 class TimetableChangeSeeder extends Seeder
@@ -16,7 +17,7 @@ class TimetableChangeSeeder extends Seeder
      */
     public function run(): void
     {
-        $teachers = User::role('teacher')->get();
+        $teachers = Teacher::all();
         if ($teachers->isEmpty()) {
             $this->command->info('Skipping TimetableChangeSeeder: No teachers found.');
             return;
@@ -42,41 +43,25 @@ class TimetableChangeSeeder extends Seeder
             return;
         }
 
-        // そのクラスの火曜日と水曜日の1時間目の授業を取得
-        $tuesdaySlot = Timetable::where('school_class_id', $classToTest->id)
-            ->where('day', 'Tuesday')->where('lesson', 'lesson_1')->first();
+        $today = Carbon::today();
+        $yesterday = Carbon::yesterday();
 
-        $wednesdaySlot = Timetable::where('school_class_id', $classToTest->id)
-            ->where('day', 'Wednesday')->where('lesson', 'lesson_2')->first();
+        $todaySlot = Timetable::where('school_class_id', $classToTest->id)
+            ->where('day', $today->copy()->format('l'))->where('lesson', 'lesson_1')->first();
+        $yesterdaySlot = Timetable::where('school_class_id', $classToTest->id)
+            ->where('day', $yesterday->copy()->format('l'))->where('lesson', 'lesson_2')->first();
 
         // 両方のスロットが存在する場合のみ、変更データを作成
-        if ($tuesdaySlot && $wednesdaySlot) {
-            // シーダーの実行日に関わらず、「今週の」火曜日と水曜日の日付を取得
-            $tuesdayDate = (Carbon::today())->toDateString();
-            $wednesdayDate = (Carbon::yesterday())->toDateString();
+        if ($todaySlot && $yesterdaySlot) {
             $teacher = $teachers->random();
-
-            // 既存の同じ変更データを削除して、重複を防ぐ
-            TimetableChange::where('before_timetable_id', $tuesdaySlot->id)->where('before_date', $tuesdayDate)->delete();
-            TimetableChange::where('before_timetable_id', $wednesdaySlot->id)->where('before_date', $wednesdayDate)->delete();
-
-            // 変更1: 火曜日の授業(tuesdaySlot)を、水曜日に移動する申請
-            TimetableChange::create([
-                'teacher_id' => 1,
-                'before_date' => $tuesdayDate,
-                'before_timetable_id' => $tuesdaySlot->id,
-                'after_date' => $wednesdayDate,
-                'after_timetable_id' => $wednesdaySlot->id,
-                'approval' => true,
-            ]);
 
             // 変更2: 水曜日の授業(wednesdaySlot)を、火曜日に移動する申請
             TimetableChange::create([
-                'teacher_id' => 1,
-                'before_date' => $wednesdayDate,
-                'before_timetable_id' => $wednesdaySlot->id,
-                'after_date' => $tuesdayDate,
-                'after_timetable_id' => $tuesdaySlot->id,
+                'teacher_id' => $teacher->id,
+                'before_date' => $today,
+                'before_timetable_id' => $todaySlot->id,
+                'after_date' => $yesterday,
+                'after_timetable_id' =>$yesterdaySlot->id,
                 'approval' => true,
             ]);
         }
