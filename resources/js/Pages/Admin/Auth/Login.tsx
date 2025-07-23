@@ -21,7 +21,7 @@ interface LoginProps {
 }
 
 // コンポーネント名をLoginStudentに変更
-export default function LoginStudent({ status, canResetPassword }: LoginProps) {
+export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
   const { t } = useTranslation();
 
   const { data, setData, post, processing, errors, reset } = useForm({
@@ -33,7 +33,7 @@ export default function LoginStudent({ status, canResetPassword }: LoginProps) {
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // 学生用のログインエンドポイントを想定
-    post('/student/login', {
+    post('/login', {
         onFinish: () => reset('password'),
     });
   };
@@ -95,22 +95,22 @@ export default function LoginStudent({ status, canResetPassword }: LoginProps) {
                 <Group className="bottom-left-buttons">
                     {/* ▼▼▼ ここから修正 ▼▼▼ */}
                     {/* 現在のページなので非活性にするか、スタイルを変えるとより親切です */}
-                    <Button component="span" variant="outline" radius="xs" className="link-button" disabled>
-                    生徒
-                    </Button>
-                    
+                    <Link href="/student/login" as="button">
+                        <Button variant="outline" radius="xs" className="link-button">
+                            生徒
+                        </Button>
+                    </Link>
                     {/* InertiaのLinkコンポーネントを使用してページ遷移 */}
                     <Link href="/teacher/login" as="button">
                         <Button variant="outline" radius="xs" className="link-button">
                             教師
                         </Button>
                     </Link>
-                    
-                    <Link href="/admin/login" as="button">
-                        <Button variant="outline" radius="xs" className="link-button">
-                            管理人
-                        </Button>
-                    </Link>
+
+                    <Button component="span" variant="outline" radius="xs" className="link-button" disabled>
+                    管理人
+                    </Button>
+
                     {/* ▲▲▲ ここまで修正 ▲▲▲ */}
                 </Group>
 
