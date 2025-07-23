@@ -11,29 +11,10 @@ export default function Language() {
   // 1. 'common'の名前空間を明示的に指定
   const { t, i18n } = useTranslation('common');
 
-  // 2. 画面表示時に一度だけ言語設定をサーバーから取得
-  useEffect(() => {
-    const fetchLanguage = async () => {
-      try {
-        const response = await axios.get('/language');
-        const lang = response.data?.user?.language;
-        if (lang && i18n.language !== lang) {
-          i18n.changeLanguage(lang);
-        }
-      } catch (error) {
-        console.error("Error fetching language:", error);
-      }
-    };
-    fetchLanguage();
-  }, []); // 依存配列を空にして、初回レンダリング時のみ実行
-
   // 言語が変更されたときの処理
   const handleLanguageChange = async (value: string | null) => {
     if (value) {
       try {
-        // サーバーに新しい言語設定を保存
-        await axios.post('/language', { language: value });
-        // フロントエンドの言語を即座に切り替え
         i18n.changeLanguage(value);
       } catch (error) {
         console.error("Error updating language:", error);

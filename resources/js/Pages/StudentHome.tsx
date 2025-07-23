@@ -12,7 +12,7 @@ export default function StudentHome() {
   // 2. ボタンのデータを定義（言語に依存しないキーを追加）
   const buttonData = useMemo(() => [
     { key: 'timetable', path: '/timetable' },
-    { key: 'notification', path: '/studentnotification' },
+    { key: 'notification', path: '/notice' },
     { key: 'languageSettings', path: '/language' },
     // ログアウトはcommon.jsonのキーを使用
     { key: 'logout', path: '/', ns: 'common' },
@@ -53,7 +53,7 @@ export default function StudentHome() {
       <div className={`button-container ${i18n.language === 'en' ? 'lang-en' : ''}`}>
         {buttonData.map(({ key, path, ns }) => (
           <Button
-            key={key}
+            key={`${ns || 'home'}-${key}`}
             component={Link}
             href={path}
             variant="filled"
