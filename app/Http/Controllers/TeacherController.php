@@ -65,6 +65,6 @@ class TeacherController extends Controller
 
     public function notice()
     {
-        return Inertia::render("TeacherNotification", auth('teacher')->user()->notifications);
+        return Inertia::render("TeacherNotification", ["notice" => auth('teacher')->user()->notifications]);
     }
 }

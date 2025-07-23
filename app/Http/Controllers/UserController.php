@@ -246,6 +246,6 @@ class UserController extends Controller
      */
     public function notice()
     {
-        return Inertia::render("StudentNotification", auth('student')->user()->notifications);
+        return Inertia::render("StudentNotification", ["notice" => auth('student')->user()->notifications]);
     }
 }

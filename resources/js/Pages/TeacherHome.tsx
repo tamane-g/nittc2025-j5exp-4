@@ -3,17 +3,20 @@
 import React, { useMemo } from 'react';
 import { Box, Button } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
-import { Link } from '@inertiajs/react';
+import { usePage, Link } from '@inertiajs/react';
 
 export default function TeacherHome() {
   // 1. 'home'と'common'の名前空間を指定
   const { t, i18n } = useTranslation(['home', 'common']);
+  const { props } = usePage<any>();
+
+  console.log(props);
 
   // 2. ボタンのデータを定義（言語に依存しないキーを追加）
   const buttonData = useMemo(() => [
     { key: 'timetable', path: '/timetable' },
     { key: 'changeRequest', path: '/application' }, // 変更申請画面のパスを修正
-    { key: 'notification', path: '/teachernotification' },
+    { key: 'notification', path: '/notice' },
     { key: 'languageSettings', path: '/language' },
     // ログアウトはcommon.jsonのキーを使用
     { key: 'logout', path: '/', ns: 'common' },

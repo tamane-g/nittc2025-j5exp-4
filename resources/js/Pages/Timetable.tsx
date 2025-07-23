@@ -36,6 +36,8 @@ export default function Timetable() {
   const { props } = usePage<UserProps>();
   const isEnglish = i18n.language === 'en';
 
+  console.log(props);
+
   // --- APIから時間割データを取得 ---
   const fetchTimetable = useCallback(async () => {
     // モックデータ（APIが未実装の場合）

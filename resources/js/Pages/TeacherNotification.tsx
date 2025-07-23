@@ -5,7 +5,7 @@ import { Box, Container, Table, Button, Group } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 // Inertia's Link is no longer needed for the back button, but you might need it elsewhere
-// import { Link } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 
 // --- Data Type Definition ---
 interface TeacherNotice {
@@ -20,6 +20,9 @@ export default function TeacherNotification() {
   // 1. Specify the 'notification' and 'common' namespaces
   const { t, i18n } = useTranslation(['notification', 'common']);
   const [notifications, setNotifications] = useState<TeacherNotice[]>([]);
+  const { props } = usePage();
+
+  console.log(props);
 
   useEffect(() => {
     // This is a placeholder for your actual API call.

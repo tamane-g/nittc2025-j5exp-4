@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class, // ★ この行を追加
             TimetableSeeder::class, // ★ この行を追加
             TimetableChangeSeeder::class, // ★ この行を追加
+            NotificationSeeder::class,
             // TeacherSeeder::class, // 必要に応じて他のSeederも追加
             // AdminSeeder::class,
         ]);
