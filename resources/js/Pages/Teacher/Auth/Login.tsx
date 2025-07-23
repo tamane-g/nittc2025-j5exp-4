@@ -4,20 +4,21 @@ import { Box, Button, Group, Stack, TextInput, Container, Checkbox, Text } from 
 import { useForm, Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { HTMLAttributes, useEffect } from 'react';
+import '../../i18n';
 
 // エラー表示用のコンポーネント
 function InputError({ message, className = '', ...props }: { message?: string } & HTMLAttributes<HTMLParagraphElement>) {
-    return message ? (
-        <p {...props} className={`text-sm text-red-600 ${className}`}>
-            {message}
-        </p>
-    ) : null;
+  return message ? (
+    <p {...props} className={`text-sm text-red-600 ${className}`}>
+      {message}
+    </p>
+  ) : null;
 }
 
 // Propsの型定義
 interface LoginProps {
-    status?: string;
-    canResetPassword?: boolean;
+  status?: string;
+  canResetPassword?: boolean;
 }
 
 export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
@@ -40,8 +41,13 @@ export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // 学生用のログインエンドポイントを想定
+<<<<<<< HEAD
     post('/teacher/login', {
-        onFinish: () => reset('password'),
+      onFinish: () => reset('password'),
+=======
+    post('/login', {
+      onFinish: () => reset('password'),
+>>>>>>> 1676994 (ログイン日本語にしました)
     });
   };
 
@@ -56,6 +62,7 @@ export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
         {status && <Text className="login-status">{status}</Text>}
 
         <form onSubmit={submit}>
+<<<<<<< HEAD
             <Stack className="login-form">
                 <TextInput
                     size="lg"
@@ -110,13 +117,83 @@ export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
 
                 <Button type="submit" variant="filled" radius="xs" className="submit-button" disabled={processing}>
                     {t('submit')}
-                </Button>
-            </Group>
-        </form>
-      </Container>
-      
-      {/* --- CSSスタイル --- */}
-      <style>{`
+=======
+          <Stack className="login-form">
+          <TextInput
+            size="lg"
+            label={t('Login.Email')}
+            placeholder="your@email.com"
+            value={data.email}
+            onChange={(e) => setData('email', e.target.value)}
+            required
+            autoFocus
+            autoComplete="username"
+          />
+          <InputError message={errors.email} />
+
+          <TextInput
+            type="password"
+            size="lg"
+            label={t('Login.Password')}
+            placeholder={t('Login.PasswordPlaceholder')}
+            value={data.password}
+            onChange={(e) => setData('password', e.target.value)}
+            required
+            autoComplete="current-password"
+          />
+          <InputError message={errors.password} />
+
+          <Checkbox
+            label={t('Login.RememberMe')}
+            checked={data.remember}
+            onChange={(event) => setData('remember', event.currentTarget.checked)}
+          />
+        </Stack>
+
+        <Group className="login-actions">
+          {canResetPassword && (
+            <Link href="/forgot-password" className="forgot-password-link">
+              {t('Login.ForgotPassword')}
+            </Link>
+          )}
+        </Group>
+
+        {/* --- ボタンの構成を修正 --- */}
+        <Group className="login-buttons-wrapper">
+          {/* 左下のボタン郡 */}
+          <Group className="bottom-left-buttons">
+            {/* ▼▼▼ ここから修正 ▼▼▼ */}
+            {/* 現在のページなので非活性にするか、スタイルを変えるとより親切です */}
+            {/* InertiaのLinkコンポーネントを使用してページ遷移 */}
+            <Link href="/student/login" as="button">
+              <Button variant="outline" radius="xs" className="link-button">
+                生徒
+>>>>>>> 1676994 (ログイン日本語にしました)
+              </Button>
+            </Link>
+
+            <Button component="span" variant="outline" radius="xs" className="link-button" disabled>
+              教師
+            </Button>
+
+            <Link href="/admin/login" as="button">
+              <Button variant="outline" radius="xs" className="link-button">
+                管理人
+              </Button>
+            </Link>
+            {/* ▲▲▲ ここまで修正 ▲▲▲ */}
+          </Group>
+
+          {/* 右下の送信ボタン */}
+          <Button type="submit" variant="filled" radius="xs" className="submit-button" disabled={processing}>
+            {t('Login.Submit')}
+          </Button>
+        </Group>
+      </form>
+    </Container>
+
+  {/* --- CSSスタイル --- */ }
+  <style>{`
         .login-container {
           position: fixed;
           padding: 0;
