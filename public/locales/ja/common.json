@@ -14,5 +14,8 @@
   "math": "数学",
   "programming": "プログラミング",
   "experiment": "実験",
-  "physicalEducation": "体育"
+  "physicalEducation": "体育",
+  "student": {
+    "logout": "ログアウト"
+  }
 }
