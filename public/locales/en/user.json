@@ -1,0 +1,12 @@
+{
+  "registration": {
+    "title": "User Registration",
+    "selectCsvFile": "Select CSV file",
+    "csvFilePlaceholder": "Select CSV file"
+  },
+  "remove": {
+    "title": "User Deletion",
+    "selectCsvFile": "Select CSV file",
+    "csvFilePlaceholder": "Select CSV file"
+  }
+}

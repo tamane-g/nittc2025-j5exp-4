@@ -1,0 +1,21 @@
+{
+  "admin": {
+    "timetable": "Timetable",
+    "timetableApproval": "Timetable\nApproval",
+    "notification": "Notification",
+    "userRegistration": "User Registration",
+    "userDeletion": "User Deletion",
+    "languageSettings": "Language\nSettings"
+  },
+  "student": {
+    "timetable": "Timetable",
+    "notification": "Notification",
+    "languageSettings": "Language\nSettings"
+  },
+  "teacher": {
+    "timetable": "Timetable",
+    "changeRequest": "Change Request",
+    "notification": "Notification",
+    "languageSettings": "Language\nSettings"
+  }
+}

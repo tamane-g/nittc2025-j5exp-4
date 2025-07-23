@@ -1,31 +1,42 @@
-// 管理画面　パワポp6
+// resources/js/Pages/AdminHome.tsx
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Box, Button } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@inertiajs/react';
 
 export default function AdminHome() {
-  const { t, i18n } = useTranslation();
+  // 1. 'home'と'common'の名前空間を指定
+  const { t, i18n } = useTranslation(['home', 'common']);
 
-  const buttonData = [
-    { label: t('AdminHome.timetable'), path: '/timetable' },
-    { label: t('AdminHome.timetableApproval'), path: '/admin' },
-    { label: t('AdminHome.notification'), path: '/teachernotification' },
-    { label: t('AdminHome.userRegistration'), path: '/registration' },
-    { label: t('AdminHome.userDeletion'), path: '/remove' },
-    { label: t('AdminHome.languageSettings'), path: '/language' },
-    { label: t('AdminHome.logout'), path: '/' },
-  ];
+  // 2. ボタンのデータを定義（言語に依存しないキーを追加）
+  const buttonData = useMemo(() => [
+    { key: 'timetable', path: '/timetable' },
+    { key: 'timetableApproval', path: '/admin' },
+    { key: 'notification', path: '/teachernotification' },
+    { key: 'userRegistration', path: '/registration' },
+    { key: 'userDeletion', path: '/remove' },
+    { key: 'languageSettings', path: '/language' },
+    // ログアウトはcommon.jsonのキーを使用
+    { key: 'logout', path: '/', ns: 'common' },
+  ], []);
 
-  const smallFont25 = [t('AdminHome.logout')];
-  const smallFont23 = [t('AdminHome.timetableApproval'), t('AdminHome.userRegistration'), t('AdminHome.userDeletion')];
-
-  const buttonStyle = {
-    height: '150px',
-    width: '160px',
-    fontSize: '28px',
+  // フォントサイズを決定する関数
+  const getFontSize = (key: string) => {
+    if (i18n.language === 'en') {
+      if (key === 'timetableApproval' || key === 'languageSettings') {
+        return '18px';
+      }
+      return '22px'; // 英語のデフォルト
+    }
+    // 日本語の場合
+    if (key === 'logout') return '25px';
+    if (['timetableApproval', 'userRegistration', 'userDeletion'].includes(key)) {
+      return '23px';
+    }
+    return '28px'; // 日本語のデフォルト
   };
+
 
   return (
     <div>
@@ -43,57 +54,53 @@ export default function AdminHome() {
           justifyContent: 'center',
         }}
       >
-        {t('Home')}
+        {/* 3. common.jsonから'home'キーを呼び出す */}
+        {t('home', { ns: 'common' })}
       </Box>
-      <div
-        className={`button-container ${i18n.language === 'en' ? 'lang-en' : ''}`}
-      >
-        {buttonData.map(({ label, path }, index) => (
+
+      <div className={`button-container ${i18n.language === 'en' ? 'lang-en' : ''}`}>
+        {buttonData.map(({ key, path, ns }) => (
           <Button
-            key={index}
+            key={key}
             component={Link}
             href={path}
             variant="filled"
             radius="lg"
             className="home-button"
-            style={{
-              fontSize:
-                i18n.language === 'en' && (label === t('AdminHome.timetableApproval') || label === t('AdminHome.languageSettings'))
-                  ? '18px' // 英語のTimetable ApprovalとLanguage Settingsのフォントサイズ
-                  : smallFont25.includes(label)
-                  ? '25px'
-                  : smallFont23.includes(label)
-                  ? '23px'
-                  : buttonStyle.fontSize,
-            }}
+            style={{ fontSize: getFontSize(key) }}
             onClick={() => {
-              if (label === t('AdminHome.logout')) {
-                i18n.changeLanguage('ja');
+              // 4. 言語に依存しないキーで判定
+              if (key === 'logout') {
+                console.log("ログアウト処理を実行");
+                // 必要であれば言語をリセット
+                // i18n.changeLanguage('ja');
               }
             }}
           >
-            {label}
+            {/* home.jsonのadminセクションからキーを呼び出す */}
+            {t(`admin.${key}`, { ns: ns || 'home' })}
           </Button>
         ))}
       </div>
+
+      {/* --- CSSスタイル --- */}
       <style>{`
         .button-container {
           display: flex;
           flex-wrap: wrap;
           gap: 20px;
           padding: 130px 40px;
+          justify-content: center; /* ボタンを中央揃え */
         }
         .home-button {
-          height: 150px; /* 日本語表示時の元の高さ */
+          height: 150px;
           width: 160px;
-          font-size: 28px;
+          white-space: normal; /* テキストの折り返しを許可 */
+          word-break: break-word; /* 単語の途中でも改行 */
         }
         .lang-en .home-button {
-          height: 190px; /* 英語表示時の高さ */
-          width: 230px; /* 英語表示時の幅 */
-          font-size: 18px; /* 英語表示時のフォントサイズ */
-          white-space: normal !important; /* テキストの折り返しを強制 */
-          word-break: break-word !important; /* 単語の途中で改行を強制 */
+          height: 150px; /* 英語でも高さを統一 */
+          width: 180px; /* 少し幅を広げる */
         }
         @media (max-width: 768px) {
           .button-container {
@@ -103,8 +110,8 @@ export default function AdminHome() {
           }
           .home-button {
             width: 80%;
+            max-width: 300px; /* 最大幅を設定 */
             height: 80px;
-            font-size: 22px;
           }
         }
       `}</style>

@@ -1,114 +1,121 @@
+// resources/js/Pages/TimetableSearch.tsx
 
-import { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button, Select, List, ThemeIcon, Box } from '@mantine/core';
 import { IconCircleDashed } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@inertiajs/react';
 
-// 詳細な時間割のダミーデータ
+// --- データ型定義 (言語非依存) ---
+interface TimetableItem {
+  id: number;
+  dayKey: string;
+  period: number;
+  subjectKey: string;
+  teacherKey: string;
+  classKey: string;
+}
+
+// --- メインコンポーネント ---
 export default function TimetableSearch() {
-  const { t } = useTranslation();
-  const [selectedClass, setSelectedClass] = useState<string | null>(null);
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  // 1. 名前空間を指定
+  const { t, i18n } = useTranslation(['timetable_search', 'common']);
+  const [selectedClassKey, setSelectedClassKey] = useState<string | null>(null);
+  const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
 
-  // 詳細な時間割のダミーデータ
-  const timetableData = [
-    { id: 1, day: t('TimetableSearch.monday'), period: 1, subject: t('TimetableSearch.japanese'), teacher: t('TimetableSearch.teacherSuzuki'), class: t('TimetableSearch.class5_5') },
-    { id: 2, day: t('TimetableSearch.monday'), period: 2, subject: t('TimetableSearch.math'), teacher: t('TimetableSearch.teacherSato'), class: t('TimetableSearch.class5_5') },
-    { id: 3, day: t('TimetableSearch.tuesday'), period: 1, subject: t('TimetableSearch.science'), teacher: t('TimetableSearch.teacherTanaka'), class: t('TimetableSearch.class5_4') },
-    { id: 4, day: t('TimetableSearch.tuesday'), period: 2, subject: t('TimetableSearch.socialStudies'), teacher: t('TimetableSearch.teacherTakahashi'), class: t('TimetableSearch.class5_5') },
-    { id: 5, day: t('TimetableSearch.wednesday'), period: 3, subject: t('TimetableSearch.english'), teacher: t('TimetableSearch.teacherWatanabe'), class: t('TimetableSearch.class5_4') },
-    { id: 6, day: t('TimetableSearch.thursday'), period: 4, subject: t('TimetableSearch.physicalEducation'), teacher: t('TimetableSearch.teacherIto'), class: t('TimetableSearch.class5_5') },
-    { id: 7, day: t('TimetableSearch.friday'), period: 1, subject: t('TimetableSearch.music'), teacher: t('TimetableSearch.teacherYamamoto'), class: t('TimetableSearch.class5_4') },
-  ];
+  // --- ダミーデータ (言語非依存のキーで管理) ---
+  const timetableData: TimetableItem[] = useMemo(() => [
+    { id: 1, dayKey: 'monday', period: 1, subjectKey: 'japanese', teacherKey: 'teacherSuzuki', classKey: 'class5_5' },
+    { id: 2, dayKey: 'monday', period: 2, subjectKey: 'math', teacherKey: 'teacherSato', classKey: 'class5_5' },
+    { id: 3, dayKey: 'tuesday', period: 1, subjectKey: 'science', teacherKey: 'teacherTanaka', classKey: 'class5_4' },
+    { id: 4, dayKey: 'tuesday', period: 2, subjectKey: 'socialStudies', teacherKey: 'teacherTakahashi', classKey: 'class5_5' },
+    { id: 5, dayKey: 'wednesday', period: 3, subjectKey: 'english', teacherKey: 'teacherWatanabe', classKey: 'class5_4' },
+    { id: 6, dayKey: 'thursday', period: 4, subjectKey: 'physicalEducation', teacherKey: 'teacherIto', classKey: 'class5_5' },
+    { id: 7, dayKey: 'friday', period: 1, subjectKey: 'music', teacherKey: 'teacherYamamoto', classKey: 'class5_4' },
+  ], []);
 
-  // 利用可能なクラスと曜日のリスト
-  const classes = [t('TimetableSearch.class5_5'), t('TimetableSearch.class5_4')];
-  const days = [t('TimetableSearch.monday'), t('TimetableSearch.tuesday'), t('TimetableSearch.wednesday'), t('TimetableSearch.thursday'), t('TimetableSearch.friday')];
 
-  // フィルタリングロジック
-  const filteredData = timetableData.filter((item) => {
-    const classMatch = !selectedClass || item.class === selectedClass;
-    const dayMatch = !selectedDay || item.day === selectedDay;
+  // --- 選択肢を動的に生成 ---
+  const classOptions = useMemo(() =>
+    [...new Set(timetableData.map(item => item.classKey))].map(key => ({
+      value: key,
+      label: t(key),
+    })), [timetableData, i18n.language, t]
+  );
+
+  const dayOptions = useMemo(() =>
+    [...new Set(timetableData.map(item => item.dayKey))].map(key => ({
+      value: key,
+      label: t(key),
+    })), [timetableData, i18n.language, t]
+  );
+
+
+  // 2. フィルタリングロジックをキー基準に修正
+  const filteredData = timetableData.filter(item => {
+    const classMatch = !selectedClassKey || item.classKey === selectedClassKey;
+    const dayMatch = !selectedDayKey || item.dayKey === selectedDayKey;
     return classMatch && dayMatch;
   });
 
   return (
     <div style={{ padding: '20px' }}>
-      <Box
-        h={100}
-        w="100%"
-        bg="var(--mantine-color-blue-filled)"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          fontSize: '36px',
-          color: 'white',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 10,
-        }}
-      >
-        {t('TimetableSearch.title')}
+      <Box h={100} w="100%" bg="var(--mantine-color-blue-filled)" style={{
+        position: 'fixed', top: 0, left: 0, fontSize: '36px', color: 'white',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
+      }}>
+        {t('title')}
       </Box>
 
       <div style={{ marginTop: '120px' }}>
-        {/* フィルターUI */}
         <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
           <Select
-            label={t('TimetableSearch.class')}
-            placeholder={t('TimetableSearch.selectClass')}
-            data={classes}
-            value={selectedClass}
-            onChange={setSelectedClass}
+            label={t('class')}
+            placeholder={t('selectClass')}
+            data={classOptions}
+            value={selectedClassKey}
+            onChange={setSelectedClassKey}
             clearable
           />
           <Select
-            label={t('TimetableSearch.dayOfWeek')}
-            placeholder={t('TimetableSearch.selectDayOfWeek')}
-            data={days}
-            value={selectedDay}
-            onChange={setSelectedDay}
+            label={t('dayOfWeek')}
+            placeholder={t('selectDayOfWeek')}
+            data={dayOptions}
+            value={selectedDayKey}
+            onChange={setSelectedDayKey}
             clearable
           />
         </div>
 
-        {/* 絞り込み結果のリスト表示 */}
-        <List
-          spacing="xs"
-          size="sm"
-          center
-          icon={
-            <ThemeIcon color="teal" size={24} radius="xl">
-              <IconCircleDashed style={{ width: 16, height: 16 }} />
-            </ThemeIcon>
-          }
-        >
+        <List spacing="xs" size="sm" center icon={
+          <ThemeIcon color="teal" size={24} radius="xl">
+            <IconCircleDashed style={{ width: 16, height: 16 }} />
+          </ThemeIcon>
+        }>
           {filteredData.map((item) => (
             <Link
               key={item.id}
-              href={'/timetable-change'} // Linkコンポーネントで遷移
-              style={{ cursor: 'pointer', padding: '10px', borderBottom: '1px solid #eee', wordWrap: 'break-word', display: 'block', color: 'inherit', textDecoration: 'none' }}
+              href={'/timetable-change'} // 遷移先は適宜修正
+              data={{ change_request_id: item.id }}
+              style={{ display: 'block', color: 'inherit', textDecoration: 'none' }}
             >
-              <List.Item>
-                {`${item.day}${t('TimetableSearch.period')} ${item.period}限 : ${item.subject} (${item.teacher}先生) - ${item.class}`}
+              <List.Item style={{ padding: '10px', borderBottom: '1px solid #eee', cursor: 'pointer' }}>
+                {/* 3. 表示時にキーを翻訳 */}
+                {`${t(item.dayKey)} ${item.period}${t('period')} : ${t(item.subjectKey)} (${t(item.teacherKey)}${t('teacherSuffix', { ns: 'common' })}) - ${t(item.classKey)}`}
               </List.Item>
             </Link>
           ))}
         </List>
-        {filteredData.length === 0 && <p>{t('TimetableSearch.noClassesFound')}</p>}
+        {filteredData.length === 0 && <p>{t('noClassesFound')}</p>}
       </div>
 
       <Button
-        component={Link}
-        href={'/'} // ホームに戻る
+        onClick={() => window.history.back()}
         variant="filled"
         size="md"
         style={{ position: 'fixed', bottom: '20px', left: '20px' }}
       >
-        {t('back')}
+        {t('back', { ns: 'common' })}
       </Button>
     </div>
   );
