@@ -4,7 +4,6 @@ import { Box, Button, Group, Stack, TextInput, Container, Checkbox, Text } from 
 import { useForm, Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { HTMLAttributes, useEffect } from 'react';
-import '../i18n';
 
 // エラー表示用のコンポーネント
 function InputError({ message, className = '', ...props }: { message?: string } & HTMLAttributes<HTMLParagraphElement>) {
