@@ -14,5 +14,8 @@
   "math": "Math",
   "programming": "Programming",
   "experiment": "Experiment",
-  "physicalEducation": "Physical Education"
+  "physicalEducation": "Physical Education",
+  "student": {
+    "logout": "Logout"
+  }
 }
