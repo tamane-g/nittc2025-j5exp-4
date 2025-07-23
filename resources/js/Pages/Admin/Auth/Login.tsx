@@ -7,17 +7,17 @@ import { HTMLAttributes, useEffect } from 'react';
 
 // エラー表示用のコンポーネント
 function InputError({ message, className = '', ...props }: { message?: string } & HTMLAttributes<HTMLParagraphElement>) {
-    return message ? (
-        <p {...props} className={`text-sm text-red-600 ${className}`}>
-            {message}
-        </p>
-    ) : null;
+  return message ? (
+    <p {...props} className={`text-sm text-red-600 ${className}`}>
+      {message}
+    </p>
+  ) : null;
 }
 
 // Propsの型定義
 interface LoginProps {
-    status?: string;
-    canResetPassword?: boolean;
+  status?: string;
+  canResetPassword?: boolean;
 }
 
 export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
@@ -41,7 +41,7 @@ export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
     e.preventDefault();
     // 学生用のログインエンドポイントを想定
     post('/admin/login', {
-        onFinish: () => reset('password'),
+      onFinish: () => reset('password'),
     });
   };
 
@@ -56,63 +56,63 @@ export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
         {status && <Text className="login-status">{status}</Text>}
 
         <form onSubmit={submit}>
-            <Stack className="login-form">
-                <TextInput
-                    size="lg"
-                    label={t('username')}
-                    placeholder="your@email.com"
-                    value={data.email}
-                    onChange={(e) => setData('email', e.target.value)}
-                    required
-                    autoFocus
-                    autoComplete="username"
-                />
-                <InputError message={errors.email} />
+          <Stack className="login-form">
+            <TextInput
+              size="lg"
+              label={t('username')}
+              placeholder="your@email.com"
+              value={data.email}
+              onChange={(e) => setData('email', e.target.value)}
+              required
+              autoFocus
+              autoComplete="username"
+            />
+            <InputError message={errors.email} />
 
-                <TextInput
-                    type="password"
-                    size="lg"
-                    label={t('password')}
-                    placeholder={t('passwordPlaceholder')}
-                    value={data.password}
-                    onChange={(e) => setData('password', e.target.value)}
-                    required
-                    autoComplete="current-password"
-                />
-                <InputError message={errors.password} />
+            <TextInput
+              type="password"
+              size="lg"
+              label={t('password')}
+              placeholder={t('passwordPlaceholder')}
+              value={data.password}
+              onChange={(e) => setData('password', e.target.value)}
+              required
+              autoComplete="current-password"
+            />
+            <InputError message={errors.password} />
 
-                <Checkbox
-                    // login.jsonのキーに合わせて 'rememberMe' などに変更してください
-                    label={t('rememberMe', 'Remember me')} // 'rememberMe'キーと、見つからない場合のデフォルトテキスト
-                    checked={data.remember}
-                    onChange={(event) => setData('remember', event.currentTarget.checked)}
-                />
-            </Stack>
+            <Checkbox
+              // login.jsonのキーに合わせて 'rememberMe' などに変更してください
+              label={t('rememberMe', 'Remember me')} // 'rememberMe'キーと、見つからない場合のデフォルトテキスト
+              checked={data.remember}
+              onChange={(event) => setData('remember', event.currentTarget.checked)}
+            />
+          </Stack>
 
-            <Group className="login-buttons-wrapper">
-                <Group className="bottom-left-buttons">
-                    <Link href="/student/login" as="button">
-                        <Button variant="outline" radius="xs" className="link-button">
-                            生徒
-                        </Button>
-                    </Link>
-                    <Link href="/teacher/login" as="button">
-                        <Button variant="outline" radius="xs" className="link-button">
-                            教師
-                        </Button>
-                    </Link>
-                    <Button component="span" variant="outline" radius="xs" className="link-button" disabled>
-                      管理人
-                    </Button>
-                </Group>
-
-                <Button type="submit" variant="filled" radius="xs" className="submit-button" disabled={processing}>
-                    {t('submit')}
+          <Group className="login-buttons-wrapper">
+            <Group className="bottom-left-buttons">
+              <Link href="/student/login" as="button">
+                <Button variant="outline" radius="xs" className="link-button">
+                  生徒
                 </Button>
+              </Link>
+              <Link href="/teacher/login" as="button">
+                <Button variant="outline" radius="xs" className="link-button">
+                  教師
+                </Button>
+              </Link>
+              <Button component="span" variant="outline" radius="xs" className="link-button" disabled>
+                管理人
+              </Button>
             </Group>
+
+            <Button type="submit" variant="filled" radius="xs" className="submit-button" disabled={processing}>
+              {t('submit')}
+            </Button>
+          </Group>
         </form>
       </Container>
-      
+
       {/* --- CSSスタイル --- */}
       <style>{`
         .login-container {
@@ -136,9 +136,9 @@ export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
           padding: 0 100px;
         }
         .login-status {
-            margin-top: 1rem;
-            font-weight: 500;
-            color: var(--mantine-color-green-7);
+          margin-top: 1rem;
+          font-weight: 500;
+          color: var(--mantine-color-green-7);
         }
         .login-form {
           width: 400px;
@@ -147,23 +147,23 @@ export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
           padding: 10px;
         }
         .login-actions {
-            width: 400px;
-            justify-content: flex-end;
-            margin-top: 10px;
+          width: 400px;
+          justify-content: flex-end;
+          margin-top: 10px;
         }
         .forgot-password-link {
-            font-size: var(--mantine-font-size-sm);
-            color: var(--mantine-color-gray-6);
-            text-decoration: none;
+          font-size: var(--mantine-font-size-sm);
+          color: var(--mantine-color-gray-6);
+          text-decoration: none;
         }
         .forgot-password-link:hover {
-            text-decoration: underline;
+          text-decoration: underline;
         }
         .text-sm {
-            font-size: 0.875rem; /* 14px */
+          font-size: 0.875rem; /* 14px */
         }
         .text-red-600 {
-            color: #DC2626;
+          color: #DC2626;
         }
 
         .login-buttons-wrapper {

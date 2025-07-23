@@ -1,34 +1,54 @@
 //ユーザ登録画面　パワポp9
 
-import React, { useState } from 'react';
-import {Box,Button, Container, FileInput} from '@mantine/core';
+import React from 'react';
+import { useForm } from '@inertiajs/react';
+import { Box, Button, Container, FileInput } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
-import { Link } from '@inertiajs/react';
+// react-router-domのLinkをインポート（@inertiajs/reactのLinkは外す）
+import { Link } from '@inertiajs/react'
+import '../../i18n';
 
 export default function Registration() {
   const { t } = useTranslation();
-  const [csvFile, setCsvFile] = useState<File | null>(null);
 
-  const handleSubmit = async () => {
-    if (csvFile) {
-      const formData = new FormData();
-      formData.append('csvFile', csvFile);
+  const form = useForm<{ csvFiles?: File[] }>({
+    csvFiles: undefined,
+  });
 
-      try {
-        await axios.post('/regist', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        alert(t('Registration.success'));
-        // navigate(-1); // Linkコンポーネントに置き換え
-      } catch (error) {
-        console.error("Error uploading CSV file:", error);
-        alert(t('Registration.error'));
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!form.data.csvFiles || form.data.csvFiles.length === 0) {
+      alert('ファイルが選択されていません');
+      return;
+    }
+
+    const data = new FormData();
+    form.data.csvFiles.forEach((file) => {
+      data.append('csvFiles[]', file);
+    });
+
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    try {
+      const response = await fetch('/regist', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': token || '',
+        },
+        body: data,
+      });
+
+      if (!response.ok) {
+        alert('送信に失敗しました');
+        return;
       }
-    } else {
-      alert(t('Registration.noFileSelected'));
+
+      alert('送信に成功しました');
+      form.reset('csvFiles');
+    } catch (error) {
+      console.error(error);
+      alert('送信時にエラーが発生しました');
     }
   };
 
@@ -43,22 +63,25 @@ export default function Registration() {
           {t('Registration.selectCsvFile')}
         </Box>
         <FileInput
-          style={{ paddingLeft: '70px' }}
+          style={{ paddingLeft: 70 }}
+          multiple
           w={300}
           size="lg"
           placeholder={t('Registration.csvFilePlaceholder')}
-          value={csvFile}
-          onChange={setCsvFile}
+          value={form.data.csvFiles ?? undefined}
+          onChange={(files) => form.setData('csvFiles', files ?? undefined)}
+          accept=".csv"
           styles={{
             input: {
               border: '3px solid black',
               textAlign: 'center',
-              marginTop: '20px',
-              padding: '10px',
-              fontSize: '16px',
+              marginTop: 20,
+              padding: 10,
+              fontSize: 16,
             },
           }}
         />
+
       </Container>
 
       <Button
