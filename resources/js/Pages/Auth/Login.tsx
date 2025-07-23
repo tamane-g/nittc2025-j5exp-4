@@ -94,16 +94,12 @@ export default function LoginStudent({ status, canResetPassword }: LoginProps) {
               <Button component="span" variant="outline" radius="xs" className="link-button" disabled>
                 生徒
               </Button>
-              <Link href="/teacher/login" as="button">
-                <Button variant="outline" radius="xs" className="link-button">
-                  教師
-                </Button>
-              </Link>
-              <Link href="/admin/login" as="button">
-                <Button variant="outline" radius="xs" className="link-button">
-                  管理人
-                </Button>
-              </Link>
+              <Button component={Link} href="/teacher/login" variant="outline" radius="xs" className="link-button">
+                教師
+              </Button>
+              <Button component={Link} href="/admin/login" variant="outline" radius="xs" className="link-button">
+                管理人
+              </Button>
             </Group>
 
             <Button type="submit" variant="filled" radius="xs" className="submit-button" disabled={processing}>

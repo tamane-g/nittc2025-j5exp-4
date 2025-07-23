@@ -40,4 +40,9 @@ class TimetableChange extends Model
     {
         return $this->belongsTo(Timetable::class, 'after_timetable_id');
     }
+
+    public function teacher(): BelongsTo
+    {
+        return $this->belongsTo(Timetable::class, 'after_timetable_id');
+    }
 }

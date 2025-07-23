@@ -26,14 +26,12 @@ class TimetableChangeController extends Controller
         // 関連するモデル（teacher, room, schoolClass, beforeTimetable, afterTimetable）も同時に読み込む
         $changes = TimetableChange::with([
             'teacher',
-            'room',
-            'schoolClass',
             'beforeTimetable',
             'afterTimetable'
         ])->latest()->get();
 
         // 'TimetableChanges/Index' はフロントエンドのVue/Reactコンポーネントのパスを想定
-        return Inertia::render('TimetableChanges/Index', [
+        return Inertia::render('TimetableChange', [
             'changes' => $changes,
         ]);
     }
@@ -46,7 +44,7 @@ class TimetableChangeController extends Controller
      * @return \Illuminate\Http\RedirectResponse
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'teacher_id' => 'required|exists:users,id',
@@ -54,7 +52,6 @@ class TimetableChangeController extends Controller
             'before_timetable_id' => 'nullable|exists:timetables,id',
             'after_date' => 'required|date',
             'after_timetable_id' => 'required|exists:timetables,id',
-            'room_id' => 'required|exists:rooms,id',
         ]);
 
         // 提案された変更後の時間割エントリを取得
@@ -94,10 +91,9 @@ class TimetableChangeController extends Controller
     public function show(TimetableChange $timetableChange): Response
     {
         // 指定されたIDの申請データをリレーションと共に読み込む
-        return Inertia::render('TimetableChanges/Show', [ // 'TimetableChanges/Show' はフロントエンドのVue/Reactコンポーネントのパスを想定
+        return Inertia::render('TimetableChange', [ // 'TimetableChanges/Show' はフロントエンドのVue/Reactコンポーネントのパスを想定
             'timetableChange' => $timetableChange->load([
                 'teacher',
-                'room',
                 'beforeTimetable',
                 'afterTimetable'
             ]),

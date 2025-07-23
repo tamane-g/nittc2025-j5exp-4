@@ -1,9 +1,10 @@
 // resources/js/Pages/TeacherHome.tsx
 
+import axios from 'axios';
 import React, { useMemo } from 'react';
 import { Box, Button } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
-import { usePage, Link } from '@inertiajs/react';
+import { usePage, Link, router } from '@inertiajs/react';
 
 export default function TeacherHome() {
   // 1. 'home'と'common'の名前空間を指定
@@ -13,14 +14,12 @@ export default function TeacherHome() {
   console.log(props);
 
   // 2. ボタンのデータを定義（言語に依存しないキーを追加）
-  const buttonData = useMemo(() => [
-    { key: 'timetable', path: '/timetable' },
-    { key: 'changeRequest', path: '/application' }, // 変更申請画面のパスを修正
-    { key: 'notification', path: '/notice' },
-    { key: 'languageSettings', path: '/language' },
-    // ログアウトはcommon.jsonのキーを使用
-    { key: 'logout', path: '/', ns: 'common' },
-  ], []);
+  const buttonData = [
+    { key: 'timetable', path: route('teacher.timetable.view') },
+    { key: 'changeRequest', path: route('teacher.timetablechange.view') }, // 変更申請画面のパスを修正
+    { key: 'notification', path: route('teacher.notice') },
+    { key: 'languageSettings', path: route('language.view') },
+  ];
 
   // フォントサイズを決定する関数
   const getFontSize = (key: string) => {
@@ -55,26 +54,38 @@ export default function TeacherHome() {
       </Box>
 
       <div className={`button-container ${i18n.language === 'en' ? 'lang-en' : ''}`}>
-        {buttonData.map(({ key, path, ns }) => (
+        {buttonData.map(({ key, path }) => (
           <Button
-            key={key}
+            key={`${'home'}-${key}`}
             component={Link}
             href={path}
             variant="filled"
             radius="lg"
             className="home-button"
             style={{ fontSize: getFontSize(key) }}
-            onClick={() => {
-              // 4. 言語に依存しないキーで判定
-              if (key === 'logout') {
-                console.log("ログアウト処理を実行");
-              }
-            }}
           >
             {/* home.jsonのteacherセクションからキーを呼び出す */}
-            {t(`teacher.${key}`, { ns: ns || 'home' })}
+            {t(`teacher.${key}`, { ns: 'home' })}
           </Button>
         ))}
+
+        <Button
+          key="logout"
+          variant="filled"
+          radius="lg"
+          className="home-button"
+          style={{ fontSize: getFontSize('logout') }}
+          onClick={async () => {
+            try {
+              await axios.post(route('teacher.logout'));
+              window.location.href = '/';
+            } catch (e) {
+              console.error('Logout failed:', e);
+            }
+          }}
+        >
+          {t('teacher.logout', { ns: 'common' })}
+        </Button>
       </div>
 
       {/* --- CSSスタイル --- */}

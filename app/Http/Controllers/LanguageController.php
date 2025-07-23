@@ -15,7 +15,9 @@ class LanguageController extends Controller
      */
     public function __invoke(Request $request): Response|RedirectResponse
     {
-        if (Auth::guard()->check()) {
+        if (Auth::guard('student')->check() ||
+            Auth::guard('teacher')->check() ||
+            Auth::guard('admin')->check()) {
             return Inertia::render('Language');
         }
         return redirect()->route('login');

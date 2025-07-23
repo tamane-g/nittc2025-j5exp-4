@@ -91,16 +91,12 @@ export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
 
           <Group className="login-buttons-wrapper">
             <Group className="bottom-left-buttons">
-              <Link href="/student/login" as="button">
-                <Button variant="outline" radius="xs" className="link-button">
-                  生徒
-                </Button>
-              </Link>
-              <Link href="/teacher/login" as="button">
-                <Button variant="outline" radius="xs" className="link-button">
-                  教師
-                </Button>
-              </Link>
+              <Button component={Link} href="/student/login" variant="outline" radius="xs" className="link-button">
+                生徒
+              </Button>
+              <Button component={Link} href="/teacher/login" variant="outline" radius="xs" className="link-button">
+                教師
+              </Button>
               <Button component="span" variant="outline" radius="xs" className="link-button" disabled>
                 管理人
               </Button>
