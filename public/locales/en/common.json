@@ -17,5 +17,8 @@
   "physicalEducation": "Physical Education",
   "student": {
     "logout": "Logout"
+  },
+  "teacher": {
+    "logout": "Logout"
   }
 }
