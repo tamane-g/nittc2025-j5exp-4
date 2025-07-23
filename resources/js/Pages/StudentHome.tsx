@@ -14,7 +14,7 @@ export default function StudentHome() {
     { key: 'timetable', path: '/timetable' },
     { key: 'notification', path: '/studentnotification' },
     { key: 'languageSettings', path: '/language' },
-    // ログアウトはcommon.jsonのキーを使用
+    // ログアウトはhome.jsonのキーを使用
     { key: 'logout', path: '/', ns: 'common' },
   ], []);
 
