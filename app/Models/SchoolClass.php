@@ -40,4 +40,8 @@ class SchoolClass extends Model
     {
         return $this->hasMany(Timetable::class);
     }
+    public function notifications()
+    {
+        return $this->hasMany(SchoolClassNotification::class);
+    }
 }

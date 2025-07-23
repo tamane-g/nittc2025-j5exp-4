@@ -33,7 +33,7 @@ export default function LoginTeacher({ status, canResetPassword }: LoginProps) {
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // 学生用のログインエンドポイントを想定
-    post('/login', {
+    post('/teacher/login', {
         onFinish: () => reset('password'),
     });
   };

@@ -56,4 +56,8 @@ class Teacher extends Authenticatable
     {
         return $this->hasMany(TimetableChange::class);
     }
+    public function notifications()
+    {
+        return $this->hasMany(TeacherNotification::class);
+    }
 }
