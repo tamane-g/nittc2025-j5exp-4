@@ -1,8 +1,21 @@
 {
-    "student": {
-        "timetable": "時間割",
-        "notification": "お知らせ",
-        "languageSettings": "言語設定",
-        "logout": "ログアウト"
-    }
+  "admin": {
+    "timetable": "時間割",
+    "timetableApproval": "時間割承認",
+    "notification": "通知",
+    "userRegistration": "ユーザ登録",
+    "userDeletion": "ユーザ削除",
+    "languageSettings": "言語設定"
+  },
+  "student": {
+    "timetable": "時間割",
+    "notification": "通知",
+    "languageSettings": "言語設定"
+  },
+  "teacher": {
+    "timetable": "時間割",
+    "changeRequest": "変更申請",
+    "notification": "通知",
+    "languageSettings": "言語設定"
+  }
 }
