@@ -28,7 +28,7 @@ class Timetable extends Model
     public function teacher(): BelongsTo
     {
         // teacher_id が users テーブルの id を参照している場合
-        return $this->belongsTo(User::class, 'teacher_id');
+        return $this->belongsTo(Teacher::class, 'teacher_id');
     }
 
     /**

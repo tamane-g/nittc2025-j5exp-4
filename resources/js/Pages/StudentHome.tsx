@@ -10,7 +10,7 @@ export default function StudentHome() {
 
   const buttonData = [
     { label: t('StudentHome.timetable'), path: '/timetable' },
-    { label: t('StudentHome.notification'), path: '/studentnotification' },
+    { label: t('StudentHome.notification'), path: '/notice' },
     { label: t('StudentHome.languageSettings'), path: '/language' },
     { label: t('StudentHome.logout'), path: '/' },
   ];

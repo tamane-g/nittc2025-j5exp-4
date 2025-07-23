@@ -13,33 +13,31 @@ use Inertia\Inertia;
 // ログイン・認証済みのみアクセス可能
 Route::middleware(['auth.any'])->group(function () {
     Route::get('/', HomeController::class)->name('home'); // StudentHome
-    Route::get('/language', [LanguageController::class, 'index'])->name('language.view'); // Language
-    Route::post('/language', [LanguageController::class, 'change'])->name('language.change');
+    Route::get('/language', LanguageController::class)->name('language.view'); // Language
 });
 
 // 認証済み学生のみアクセス可能
-Route::middleware(['auth:student', 'verified'])->group(function () {
-    Route::get('/timetable', [TimetableController::class, 'show'])->name('timetable.view'); // Timetable
+Route::middleware(['auth:student'])->group(function () {
+    Route::get('/timetable', [TimetableController::class, 'view'])->name('timetable.view'); // Timetable
     Route::get('/notice', [UserController::class, 'notice'])->name('student.notice'); // StudentNotification
 });
 
 // 認証済み教師のみアクセス可能
-Route::middleware(['auth:teacher', 'verified'])->group(function () {
+Route::middleware(['auth:teacher'])->group(function () {
+    Route::get('/timetable', [TimetableController::class, 'teacherView'])->name('timetable.teacher.view'); // Timetable
     Route::get('/change', [TimetableChangeController::class, 'show'])->name('timetablechange.view');
     Route::post('/change', [TimetableChangeController::class, 'store'])->name('timetablechange.store');
     Route::get('/notice', [TeacherController::class, 'notice'])->name('teacher.notice');
-    
 });
 
 // 認証済み管理者のみアクセス可能
-Route::middleware(['auth:admin', 'verified'])->group(function () {
+Route::middleware(['auth:admin'])->group(function () {
     Route::get('/change', [TimetableChangeController::class, 'index'])->name('timetablechange.index');
     Route::post('/change', [TimetableChangeController::class, 'approve'])->name('timetablechange.approve');
     Route::get('/regist', [UserController::class, 'regist'])->name('regist.view');
     Route::post('/regist', [UserController::class, 'import'])->name('regist.import');
     Route::get('/remove', [UserController::class, 'remove'])->name('remove.view');
     Route::get('/remove', [UserController::class, 'delete'])->name('remove.import');
-    
 });
 
 Route::prefix('student')->name('student.')->group(function(){

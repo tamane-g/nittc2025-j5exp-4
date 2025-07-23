@@ -205,11 +205,7 @@ class UserController extends Controller
      */
     public function regist(): Response
     {
-        // 登録フォームに必要なデータを渡す（例: クラス一覧など）
-        $schoolClasses = \App\Models\SchoolClass::all(); // SchoolClass モデルをuseする必要がある
-        return Inertia::render('Users/Regist', [ // 'Users/Regist' はフロントエンドのコンポーネントパス
-            'schoolClasses' => $schoolClasses,
-        ]);
+        return Inertia::render('Registration');
     }
 
     /**
@@ -220,10 +216,7 @@ class UserController extends Controller
      */
     public function remove(): Response
     {
-        $users = User::all(); // 削除対象のユーザー一覧を取得
-        return Inertia::render('Users/Remove', [ // 'Users/Remove' はフロントエンドのコンポーネントパス
-            'users' => $users,
-        ]);
+        return Inertia::render('Remove');
     }
 
     /**
@@ -251,12 +244,8 @@ class UserController extends Controller
      *
      * @return \Inertia\Response
      */
-    public function notice(): Response
+    public function notice()
     {
-        // ここで学生向けの通知データを取得し、フロントエンドに渡す
-        $notifications = []; // 例: データベースから通知を取得
-        return Inertia::render('Users/Notice', [ // 'Users/Notice' はフロントエンドのコンポーネントパス
-            'notifications' => $notifications,
-        ]);
+        return Inertia::render("StudentNotification", auth('student')->user()->notifications);
     }
 }

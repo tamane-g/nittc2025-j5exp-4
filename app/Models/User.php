@@ -18,7 +18,10 @@ class User extends Authenticatable
         'password',
         'school_class_id', // school_class_id は既にありますが、念のため
     ];
-
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
     /**
      * Get the school class that the user belongs to.
      */
@@ -26,5 +29,9 @@ class User extends Authenticatable
     {
         // users テーブルの school_class_id が school_classes テーブルの id を参照する
         return $this->belongsTo(SchoolClass::class, 'school_class_id', 'id');
+    }
+    public function notifications()
+    {
+        return $this->hasMany(UserNotification::class);
     }
 }

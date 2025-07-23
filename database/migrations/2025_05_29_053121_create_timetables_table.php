@@ -16,9 +16,9 @@ return new class extends Migration
             $table->enum('term', ['semester_1', 'semester_2', 'full_year']);
             $table->enum('day', ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']); // ★ Wednseday を Wednesday に修正
             $table->enum('lesson', ['lesson_1', 'lesson_2', 'lesson_3', 'lesson_4']);
-            $table->foreignId('teacher_id')->constrained('users')->onDelete('restrict'); // テーブル名を明示し、onDeleteをrestrictに
-            $table->foreignId('room_id')->constrained('rooms')->onDelete('restrict'); // テーブル名を明示し、onDeleteをrestrictに
-            $table->foreignId('subject_id')->constrained('subjects')->onDelete('restrict'); // テーブル名を明示し、onDeleteをrestrictに
+            $table->foreignId('teacher_id')->nullable()->constrained('teachers')->onDelete('restrict'); // テーブル名を明示し、onDeleteをrestrictに
+            $table->foreignId('room_id')->nullable()->constrained('rooms')->onDelete('restrict'); // テーブル名を明示し、onDeleteをrestrictに
+            $table->foreignId('subject_id')->nullable()->constrained('subjects')->onDelete('restrict'); // テーブル名を明示し、onDeleteをrestrictに
             $table->foreignId('school_class_id')->constrained('school_classes')->onDelete('restrict'); // テーブル名を明示し、onDeleteをrestrictに
             $table->timestamps();
 

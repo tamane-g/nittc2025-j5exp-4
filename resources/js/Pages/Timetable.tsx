@@ -52,6 +52,8 @@ export default function Timetable() {
 
   const isEnglish = i18n.language === 'en';
 
+  console.log(props);
+
   const fetchTimetable = useCallback(async () => {
     try {
       const formattedDate = currentMonday.toISOString().split('T')[0]; // YYYY-MM-DD format

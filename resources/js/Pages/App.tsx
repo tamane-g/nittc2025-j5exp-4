@@ -9,7 +9,7 @@ import TimetableChange from './TimetableChange';
 import TimetableClick from './TimetableClick';
 import TeacherNotification from './TeacherNotification';
 import StudentNotification from './StudentNotification';
-import Language from './language';
+import Language from './Language';
 import Registration from './registration';
 import Remove from './remove';
 import ManagementScreen from './admin';

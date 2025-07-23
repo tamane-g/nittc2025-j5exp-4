@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             // 他のSeederがあればここにある
             UserSeeder::class, // ★ この行を追加
+            TimetableSeeder::class, // ★ この行を追加
+            TimetableChangeSeeder::class, // ★ この行を追加
             // TeacherSeeder::class, // 必要に応じて他のSeederも追加
             // AdminSeeder::class,
         ]);

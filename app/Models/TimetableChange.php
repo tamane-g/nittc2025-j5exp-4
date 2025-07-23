@@ -20,6 +20,10 @@ class TimetableChange extends Model
         'after_timetable_id',
         'approval', // ★ is_approved から approval に変更
     ];
+    protected $casts = [
+        'before_date' => 'datetime',
+        'after_date' => 'datetime',
+    ];
 
     /**
      * Get the original timetable entry before the change.

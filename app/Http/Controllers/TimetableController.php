@@ -2,16 +2,212 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Room;
+use App\Models\SchoolClass;
+use App\Models\Subject;
+use App\Models\Teacher;
 use App\Models\Timetable;
+use App\Models\TimetableChange; // TimetableChangeモデルをインポート
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Redirect; // Redirect のために追加
-use Illuminate\Validation\ValidationException; // ValidationException を使用するため追加
-use Illuminate\Validation\Rule; // Rule クラスを使用するため追加
-use Inertia\Inertia; // Inertia.js のレンダリングのため追加
-use Inertia\Response; // Inertia.js のレスポンス型ヒントのため追加
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+use Inertia\Response;
+use Illuminate\Http\RedirectResponse; // RedirectResponseの型ヒントのために追加
+use Carbon\Carbon; // 日付操作のためにCarbonをインポート
 
 class TimetableController extends Controller
 {
+    public function teacherView(Request $request): Response
+    {
+        // 1. 初期設定
+        $teacher = auth('teacher')->user();
+        $teacherId = $teacher->id;
+        $date = Carbon::parse($request->input('date', now()));
+        $weekStart = $date->copy()->startOfWeek(Carbon::MONDAY);
+        $weekEnd = $date->copy()->endOfWeek(Carbon::FRIDAY);
+
+        // 2. 基本時間割を取得し、IDをキーにした連想配列（マップ）を作成
+        $baseTimetable = Timetable::where('teacher_id', $teacherId)
+            ->with(['room', 'schoolClass', 'subject', 'teacher'])
+            ->get();
+        
+        // 検索と変更適用のために、IDをキーにしたコレクションを作成
+        $finalTimetableEntries = $baseTimetable->keyBy('id')->all();
+
+        // 3. 関連する時間割変更のみを効率的に取得
+        $timetableIds = $baseTimetable->pluck('id');
+        // 変更案
+        $timetableChanges = TimetableChange::where('approval', true)
+            ->where(function ($query) use ($weekStart, $weekEnd, $teacherId) {
+                // 変更の「対象日」が今週に含まれている
+                $query->whereBetween('before_date', [$weekStart, $weekEnd])
+                    ->orWhereBetween('after_date', [$weekStart, $weekEnd]);
+            })
+            ->where(function ($query) use ($teacherId) {
+                // かつ、変更元か変更先の担当がこの先生
+                $query->whereHas('beforeTimetable', function ($q) use ($teacherId) {
+                    $q->where('teacher_id', $teacherId);
+                })->orWhereHas('afterTimetable', function ($q) use ($teacherId) {
+                    $q->where('teacher_id', $teacherId);
+                });
+            })
+            ->with([
+                'beforeTimetable.room', 'beforeTimetable.schoolClass', 'beforeTimetable.subject', 'beforeTimetable.teacher',
+                'afterTimetable.room', 'afterTimetable.schoolClass', 'afterTimetable.subject', 'afterTimetable.teacher'
+            ])
+            ->get();
+
+        // 4. 変更を適用 (★ ロジックを修正)
+        foreach ($timetableChanges as $change) {
+            // 「変更元」が今週のコマの場合
+            if ($change->before_date->between($weekStart, $weekEnd) && isset($finalTimetableEntries[$change->before_timetable_id])) {
+                $originalEntry = $finalTimetableEntries[$change->before_timetable_id];
+                $changedEntry = clone $change->afterTimetable; // 変更先情報をコピー
+
+                // 元のdayとlessonを維持する
+                $changedEntry->day = $originalEntry->day;
+                $changedEntry->lesson = $originalEntry->lesson;
+                
+                $finalTimetableEntries[$change->before_timetable_id] = $changedEntry;
+            }
+            // 「変更先」が今週のコマの場合
+            if ($change->after_date->between($weekStart, $weekEnd) && isset($finalTimetableEntries[$change->after_timetable_id])) {
+                $originalEntry = $finalTimetableEntries[$change->after_timetable_id];
+                $changedEntry = clone $change->beforeTimetable; // 変更元情報をコピー
+
+                // 元のdayとlessonを維持する
+                $changedEntry->day = $originalEntry->day;
+                $changedEntry->lesson = $originalEntry->lesson;
+
+                $finalTimetableEntries[$change->after_timetable_id] = $changedEntry;
+            }
+        }
+
+        // 5. ビュー用の形式に整形
+        $timetable = $this->formatTimetableForView(collect($finalTimetableEntries));
+
+        return Inertia::render('Timetable', [
+            'user' => $teacher,
+            'date' => $date,
+            'monday' => $weekStart,
+            'friday' => $weekEnd,
+            'timetable' => $timetable,
+        ]);
+    }
+    /**
+     * 指定された日付を含む週の時間割を取得し、変更を反映させて表示します。
+     *
+     * @param Request $request
+     * @return \Inertia\Response
+     */
+    public function view(Request $request): Response
+    {
+        // 1. 初期設定
+        $student = auth('student')->user();
+        $classId = $student->schoolClass->id;
+        $date = Carbon::parse($request->input('date', now()));
+        $weekStart = $date->copy()->startOfWeek(Carbon::MONDAY);
+        $weekEnd = $date->copy()->endOfWeek(Carbon::FRIDAY);
+
+        // 2. 基本時間割を取得し、IDをキーにした連想配列（マップ）を作成
+        $baseTimetable = Timetable::where('school_class_id', $classId)
+            ->with(['room', 'schoolClass', 'subject', 'teacher'])
+            ->get();
+        
+        // 検索と変更適用のために、IDをキーにしたコレクションを作成
+        $finalTimetableEntries = $baseTimetable->keyBy('id')->all();
+
+        // 3. 関連する時間割変更のみを効率的に取得
+        $timetableIds = $baseTimetable->pluck('id');
+        $timetableChanges = TimetableChange::where('approval', true)
+            ->where(function ($query) use ($weekStart, $weekEnd, $timetableIds) {
+                // 「変更元」がこのクラスの今週のコマ
+                $query->where(function ($q) use ($weekStart, $weekEnd, $timetableIds) {
+                    $q->whereIn('before_timetable_id', $timetableIds)
+                        ->whereBetween('before_date', [$weekStart, $weekEnd]);
+                // 「変更先」がこのクラスの今週のコマ (振替など)
+                })->orWhere(function ($q) use ($weekStart, $weekEnd, $timetableIds) {
+                    $q->whereIn('after_timetable_id', $timetableIds)
+                        ->whereBetween('after_date', [$weekStart, $weekEnd]);
+                });
+            })
+            // ★ N+1問題を避けるため、ネストしたリレーションも Eager Load
+            ->with([
+                'beforeTimetable.room', 'beforeTimetable.schoolClass', 'beforeTimetable.subject', 'beforeTimetable.teacher',
+                'afterTimetable.room', 'afterTimetable.schoolClass', 'afterTimetable.subject', 'afterTimetable.teacher'
+            ])
+            ->get();
+
+        // 4. 変更を適用 (★ ロジックを修正)
+        foreach ($timetableChanges as $change) {
+            // 「変更元」が今週のコマの場合
+            if ($change->before_date->between($weekStart, $weekEnd) && isset($finalTimetableEntries[$change->before_timetable_id])) {
+                $originalEntry = $finalTimetableEntries[$change->before_timetable_id];
+                $changedEntry = clone $change->afterTimetable; // 変更先情報をコピー
+
+                // 元のdayとlessonを維持する
+                $changedEntry->day = $originalEntry->day;
+                $changedEntry->lesson = $originalEntry->lesson;
+                
+                $finalTimetableEntries[$change->before_timetable_id] = $changedEntry;
+            }
+            // 「変更先」が今週のコマの場合
+            if ($change->after_date->between($weekStart, $weekEnd) && isset($finalTimetableEntries[$change->after_timetable_id])) {
+                $originalEntry = $finalTimetableEntries[$change->after_timetable_id];
+                $changedEntry = clone $change->beforeTimetable; // 変更元情報をコピー
+
+                // 元のdayとlessonを維持する
+                $changedEntry->day = $originalEntry->day;
+                $changedEntry->lesson = $originalEntry->lesson;
+
+                $finalTimetableEntries[$change->after_timetable_id] = $changedEntry;
+            }
+        }
+
+        // 5. ビュー用の形式に整形
+        $timetable = $this->formatTimetableForView(collect($finalTimetableEntries));
+
+        return Inertia::render('Timetable', [
+            'user' => $student,
+            'date' => $date,
+            'monday' => $weekStart,
+            'friday' => $weekEnd,
+            'timetable' => $timetable,
+        ]);
+    }
+
+    /**
+     * 時間割コレクションをビュー用の多次元配列に整形するヘルパーメソッド
+     */
+    private function formatTimetableForView($timetableCollection): array
+    {
+        $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        $lessons = ['lesson_1', 'lesson_2', 'lesson_3', 'lesson_4'];
+        $formatted = [];
+
+        // 空の配列で初期化
+        foreach ($days as $day) {
+            foreach ($lessons as $lesson) {
+                $formatted[$day][$lesson] = null;
+            }
+        }
+
+        // データを埋める
+        foreach ($timetableCollection as $entry) {
+            if ($entry && isset($entry->day) && isset($entry->lesson)) {
+                $formatted[$entry->day][$entry->lesson] = [
+                    'room' => $entry->room,
+                    'school_class' => $entry->schoolClass,
+                    'subject' => $entry->subject,
+                    'teacher' => $entry->teacher,
+                ];
+            }
+        }
+        return $formatted;
+    }
+
     /**
      * 時間割テンプレートデータの一覧を取得し、Inertia.js コンポーネントで表示します。
      * (このメソッドは、もし /timetables のようなリソースルートがある場合に使用されます)
@@ -71,7 +267,7 @@ class TimetableController extends Controller
     public function show(Timetable $timetable): Response
     {
         // 関連するモデルをロードしてフロントエンドに渡す
-        return Inertia::render('Timetables/Show', [ // 'Timetables/Show' はフロントエンドのVue/Reactコンポーネントのパスを想定
+        return Inertia::render('Timetable', [ // 'Timetables/Show' はフロントエンドのVue/Reactコンポーネントのパスを想定
             'timetable' => $timetable->load(['subject', 'room', 'teacher', 'schoolClass']),
         ]);
     }
