@@ -42,14 +42,10 @@ class TimetableController extends Controller
         $timetableChanges = TimetableChange::where('approval', true)
             ->where(function ($query) use ($weekStart, $weekEnd, $teacherId) {
                 // 変更の「対象日」が今週に含まれている
-                $query->whereBetween('before_date', [$weekStart, $weekEnd])
-                    ->orWhereBetween('after_date', [$weekStart, $weekEnd]);
+                $query->whereBetween('date', [$weekStart, $weekEnd]);
             })
             ->where(function ($query) use ($teacherId) {
-                // かつ、変更元か変更先の担当がこの先生
                 $query->whereHas('beforeTimetable', function ($q) use ($teacherId) {
-                    $q->where('teacher_id', $teacherId);
-                })->orWhereHas('afterTimetable', function ($q) use ($teacherId) {
                     $q->where('teacher_id', $teacherId);
                 });
             })
@@ -62,7 +58,7 @@ class TimetableController extends Controller
         // 4. 変更を適用 (★ ロジックを修正)
         foreach ($timetableChanges as $change) {
             // 「変更元」が今週のコマの場合
-            if ($change->before_date->between($weekStart, $weekEnd) && isset($finalTimetableEntries[$change->before_timetable_id])) {
+            if ($change->date->between($weekStart, $weekEnd) && isset($finalTimetableEntries[$change->before_timetable_id])) {
                 $originalEntry = $finalTimetableEntries[$change->before_timetable_id];
                 $changedEntry = clone $change->afterTimetable; // 変更先情報をコピー
 
@@ -71,17 +67,6 @@ class TimetableController extends Controller
                 $changedEntry->lesson = $originalEntry->lesson;
                 
                 $finalTimetableEntries[$change->before_timetable_id] = $changedEntry;
-            }
-            // 「変更先」が今週のコマの場合
-            if ($change->after_date->between($weekStart, $weekEnd) && isset($finalTimetableEntries[$change->after_timetable_id])) {
-                $originalEntry = $finalTimetableEntries[$change->after_timetable_id];
-                $changedEntry = clone $change->beforeTimetable; // 変更元情報をコピー
-
-                // 元のdayとlessonを維持する
-                $changedEntry->day = $originalEntry->day;
-                $changedEntry->lesson = $originalEntry->lesson;
-
-                $finalTimetableEntries[$change->after_timetable_id] = $changedEntry;
             }
         }
 
@@ -126,11 +111,7 @@ class TimetableController extends Controller
                 // 「変更元」がこのクラスの今週のコマ
                 $query->where(function ($q) use ($weekStart, $weekEnd, $timetableIds) {
                     $q->whereIn('before_timetable_id', $timetableIds)
-                        ->whereBetween('before_date', [$weekStart, $weekEnd]);
-                // 「変更先」がこのクラスの今週のコマ (振替など)
-                })->orWhere(function ($q) use ($weekStart, $weekEnd, $timetableIds) {
-                    $q->whereIn('after_timetable_id', $timetableIds)
-                        ->whereBetween('after_date', [$weekStart, $weekEnd]);
+                        ->whereBetween('date', [$weekStart, $weekEnd]);
                 });
             })
             // ★ N+1問題を避けるため、ネストしたリレーションも Eager Load
@@ -143,7 +124,7 @@ class TimetableController extends Controller
         // 4. 変更を適用 (★ ロジックを修正)
         foreach ($timetableChanges as $change) {
             // 「変更元」が今週のコマの場合
-            if ($change->before_date->between($weekStart, $weekEnd) && isset($finalTimetableEntries[$change->before_timetable_id])) {
+            if ($change->date->between($weekStart, $weekEnd) && isset($finalTimetableEntries[$change->before_timetable_id])) {
                 $originalEntry = $finalTimetableEntries[$change->before_timetable_id];
                 $changedEntry = clone $change->afterTimetable; // 変更先情報をコピー
 
@@ -152,17 +133,6 @@ class TimetableController extends Controller
                 $changedEntry->lesson = $originalEntry->lesson;
                 
                 $finalTimetableEntries[$change->before_timetable_id] = $changedEntry;
-            }
-            // 「変更先」が今週のコマの場合
-            if ($change->after_date->between($weekStart, $weekEnd) && isset($finalTimetableEntries[$change->after_timetable_id])) {
-                $originalEntry = $finalTimetableEntries[$change->after_timetable_id];
-                $changedEntry = clone $change->beforeTimetable; // 変更元情報をコピー
-
-                // 元のdayとlessonを維持する
-                $changedEntry->day = $originalEntry->day;
-                $changedEntry->lesson = $originalEntry->lesson;
-
-                $finalTimetableEntries[$change->after_timetable_id] = $changedEntry;
             }
         }
 
@@ -174,6 +144,7 @@ class TimetableController extends Controller
             'date' => $date,
             'monday' => $weekStart,
             'friday' => $weekEnd,
+            'base' => $baseTimetable,
             'timetable' => $timetable,
         ]);
     }
@@ -227,7 +198,7 @@ class TimetableController extends Controller
             ]);
 
         // 'Timetables/Index' はフロントエンドのVue/Reactコンポーネントのパスを想定
-        return Inertia::render('Timetables/Index', [
+        return Inertia::render('Timetable', [
             'timetables' => $timetables,
         ]);
     }
@@ -239,7 +210,7 @@ class TimetableController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'term' => 'required|in:semester_1,semester_2,full_year',
@@ -280,7 +251,7 @@ class TimetableController extends Controller
      * @param int $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(Request $request, int $id): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, int $id): RedirectResponse
     {
         $timetable = Timetable::findOrFail($id);
 

@@ -17,17 +17,16 @@ return new class extends Migration
             // 教師が削除された場合に、関連する変更履歴を残すため 'restrict' を推奨。
             $table->foreignId('teacher_id')->constrained()->onDelete('restrict');
 
-            $table->date('before_date');
+            $table->date('date');
             // 変更前の時間割エントリへの参照。
             // 参照先の時間割が削除されたら、変更履歴も削除。
             $table->foreignId('before_timetable_id')
                   ->constrained('timetables')
                   ->cascadeOnDelete();
-
-            $table->date('after_date');
             // 変更後の時間割エントリへの参照。
             // 参照先の時間割が削除されたら、変更履歴も削除。
             $table->foreignId('after_timetable_id')
+                  ->nullable()
                   ->constrained('timetables')
                   ->cascadeOnDelete();
 

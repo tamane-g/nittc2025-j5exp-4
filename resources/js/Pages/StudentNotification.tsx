@@ -15,11 +15,7 @@ interface TimetableEntry {
 }
 
 interface ClassChange {
-  id: number; // データの識別用にIDを追加
-  before_date: string;
-  before_period: number;
-  after_date: string;
-  after_period: number;
+  date: string;
   before_timetable: TimetableEntry;
   after_timetable: TimetableEntry;
 }
