@@ -12,7 +12,7 @@ export default function TeacherHome() {
     { label: t('TeacherHome.timetable'), path: '/timetable' },
     { label: t('TeacherHome.changeRequest'), path: '/timetableClick' }, // 元の変更申請画面
     
-    { label: t('TeacherHome.notification'), path: '/teachernotification' },
+    { label: t('TeacherHome.notification'), path: '/notice' },
     { label: t('TeacherHome.languageSettings'), path: '/language' },
     { label: t('TeacherHome.logout'), path: '/' },
   ];

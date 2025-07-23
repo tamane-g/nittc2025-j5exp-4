@@ -38,7 +38,6 @@ Route::middleware(['auth:admin'])->group(function () {
     Route::post('/regist', [UserController::class, 'import'])->name('regist.import');
     Route::get('/remove', [UserController::class, 'remove'])->name('remove.view');
     Route::get('/remove', [UserController::class, 'delete'])->name('remove.import');
-    
 });
 
 Route::prefix('student')->name('student.')->group(function(){

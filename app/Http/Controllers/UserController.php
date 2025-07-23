@@ -244,12 +244,8 @@ class UserController extends Controller
      *
      * @return \Inertia\Response
      */
-    public function notice(): Response
+    public function notice()
     {
-        // ここで学生向けの通知データを取得し、フロントエンドに渡す
-        $notifications = []; // 例: データベースから通知を取得
-        return Inertia::render('Users/Notice', [ // 'Users/Notice' はフロントエンドのコンポーネントパス
-            'notifications' => $notifications,
-        ]);
+        return Inertia::render("StudentNotification", auth('student')->user()->notifications);
     }
 }
