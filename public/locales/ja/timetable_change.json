@@ -14,5 +14,10 @@
   "practiceRoom": "実習室",
   "gym": "体育館",
   "time": "時間",
-  "timePlaceholder": "HH:MM"
+  "timePlaceholder": "HH:MM",
+  "japanese": "国語",
+  "english": "英語",
+  "math": "数学",
+  "programming": "プログラミング",
+  "experiment": "実験"
 }

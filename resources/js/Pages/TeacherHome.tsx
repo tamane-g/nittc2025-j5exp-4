@@ -1,7 +1,7 @@
 // resources/js/Pages/TeacherHome.tsx
 
 import axios from 'axios';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Box, Button } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@inertiajs/react';
@@ -9,6 +9,7 @@ import { Link } from '@inertiajs/react';
 export default function TeacherHome() {
   // 1. 'home'と'common'の名前空間を指定
   const { t, i18n } = useTranslation(['home', 'common']);
+
 
   // 2. ボタンのデータを定義（言語に依存しないキーを追加）
   const buttonData = [
