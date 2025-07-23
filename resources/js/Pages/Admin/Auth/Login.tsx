@@ -7,17 +7,17 @@ import { HTMLAttributes, useEffect } from 'react';
 
 // エラー表示用のコンポーネント
 function InputError({ message, className = '', ...props }: { message?: string } & HTMLAttributes<HTMLParagraphElement>) {
-    return message ? (
-        <p {...props} className={`text-sm text-red-600 ${className}`}>
-            {message}
-        </p>
-    ) : null;
+  return message ? (
+    <p {...props} className={`text-sm text-red-600 ${className}`}>
+      {message}
+    </p>
+  ) : null;
 }
 
 // Propsの型定義
 interface LoginProps {
-    status?: string;
-    canResetPassword?: boolean;
+  status?: string;
+  canResetPassword?: boolean;
 }
 
 export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
@@ -40,8 +40,13 @@ export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // 学生用のログインエンドポイントを想定
+<<<<<<< HEAD
     post('/admin/login', {
         onFinish: () => reset('password'),
+=======
+    post('/login', {
+      onFinish: () => reset('password'),
+>>>>>>> c886975 (CSVファイル送信できるようになりました!)
     });
   };
 
@@ -56,6 +61,7 @@ export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
         {status && <Text className="login-status">{status}</Text>}
 
         <form onSubmit={submit}>
+<<<<<<< HEAD
             <Stack className="login-form">
                 <TextInput
                     size="lg"
@@ -108,8 +114,78 @@ export default function LoginAdmin({ status, canResetPassword }: LoginProps) {
 
                 <Button type="submit" variant="filled" radius="xs" className="submit-button" disabled={processing}>
                     {t('submit')}
+=======
+          <Stack className="login-form">
+            <TextInput
+              size="lg"
+              label={t('Login.Email')}
+              placeholder="your@email.com"
+              value={data.email}
+              onChange={(e) => setData('email', e.target.value)}
+              required
+              autoFocus
+              autoComplete="username"
+            />
+            <InputError message={errors.email} />
+
+            <TextInput
+              type="password"
+              size="lg"
+              label={t('Login.Password')}
+              placeholder={t('Login.PasswordPlaceholder')}
+              value={data.password}
+              onChange={(e) => setData('password', e.target.value)}
+              required
+              autoComplete="current-password"
+            />
+            <InputError message={errors.password} />
+
+            <Checkbox
+              label={t('Login.RememberMe')}
+              checked={data.remember}
+              onChange={(event) => setData('remember', event.currentTarget.checked)}
+            />
+          </Stack>
+
+          <Group className="login-actions">
+            {canResetPassword && (
+              <Link href="/forgot-password" className="forgot-password-link">
+                {t('Login.ForgotPassword')}
+              </Link>
+            )}
+          </Group>
+
+          {/* --- ボタンの構成を修正 --- */}
+          <Group className="login-buttons-wrapper">
+            {/* 左下のボタン郡 */}
+            <Group className="bottom-left-buttons">
+              {/* ▼▼▼ ここから修正 ▼▼▼ */}
+              {/* 現在のページなので非活性にするか、スタイルを変えるとより親切です */}
+              <Link href="/student/login" as="button">
+                <Button variant="outline" radius="xs" className="link-button">
+                  生徒
+>>>>>>> c886975 (CSVファイル送信できるようになりました!)
                 </Button>
+              </Link>
+              {/* InertiaのLinkコンポーネントを使用してページ遷移 */}
+              <Link href="/teacher/login" as="button">
+                <Button variant="outline" radius="xs" className="link-button">
+                  教師
+                </Button>
+              </Link>
+
+              <Button component="span" variant="outline" radius="xs" className="link-button" disabled>
+                管理人
+              </Button>
+
+              {/* ▲▲▲ ここまで修正 ▲▲▲ */}
             </Group>
+
+            {/* 右下の送信ボタン */}
+            <Button type="submit" variant="filled" radius="xs" className="submit-button" disabled={processing}>
+              {t('Login.Submit')}
+            </Button>
+          </Group>
         </form>
       </Container>
       
