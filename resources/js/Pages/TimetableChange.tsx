@@ -22,7 +22,8 @@ interface TimetableInfo {
 export default function TimetableChange() {
   // 1. 名前空間を指定
   const { t, i18n } = useTranslation(['timetable_change', 'common']);
-  const { props } = usePage<PageProps>();
+  const { props } = usePage();
+  console.log(props);
 
   const [beforeTimetable, setBeforeTimetable] = useState<TimetableInfo | null>(null);
   const [afterTimetable, setAfterTimetable] = useState<TimetableInfo | null>(null);

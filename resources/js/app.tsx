@@ -10,6 +10,8 @@ import { createRoot } from 'react-dom/client';
 import '@mantine/core/styles.css';
 import { createTheme, MantineProvider } from '@mantine/core';
 
+declare const route: (...args: any[]) => string;
+
 const theme = createTheme();
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -36,7 +38,7 @@ createInertiaApp({
 
     setup({ el, App, props }) {
         const root = createRoot(el);
-
+        
         root.render(
             <MantineProvider theme={theme}>
                 <App {...props} />

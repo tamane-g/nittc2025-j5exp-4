@@ -4,7 +4,6 @@ import { Box, Button, Group, Stack, TextInput, Container, Checkbox, Text } from 
 import { useForm, Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { HTMLAttributes, useEffect } from 'react';
-import '../i18n';
 
 // エラー表示用のコンポーネント
 function InputError({ message, className = '', ...props }: { message?: string } & HTMLAttributes<HTMLParagraphElement>) {
@@ -41,7 +40,7 @@ export default function LoginStudent({ status, canResetPassword }: LoginProps) {
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // 学生用のログインエンドポイントにPOST
-    post('/login', { //  ルート定義に合わせて '/login' に修正
+    post('/student/login', { //  ルート定義に合わせて '/login' に修正
       onFinish: () => reset('password'),
     });
   };
@@ -95,16 +94,12 @@ export default function LoginStudent({ status, canResetPassword }: LoginProps) {
               <Button component="span" variant="outline" radius="xs" className="link-button" disabled>
                 生徒
               </Button>
-              <Link href="/teacher/login" as="button">
-                <Button variant="outline" radius="xs" className="link-button">
-                  教師
-                </Button>
-              </Link>
-              <Link href="/admin/login" as="button">
-                <Button variant="outline" radius="xs" className="link-button">
-                  管理人
-                </Button>
-              </Link>
+              <Button component={Link} href="/teacher/login" variant="outline" radius="xs" className="link-button">
+                教師
+              </Button>
+              <Button component={Link} href="/admin/login" variant="outline" radius="xs" className="link-button">
+                管理人
+              </Button>
             </Group>
 
             <Button type="submit" variant="filled" radius="xs" className="submit-button" disabled={processing}>

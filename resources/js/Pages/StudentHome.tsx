@@ -1,5 +1,6 @@
 // resources/js/Pages/StudentHome.tsx
 
+import axios from 'axios';
 import React, { useMemo } from 'react';
 import { Box, Button } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
@@ -10,21 +11,19 @@ export default function StudentHome() {
   const { t, i18n } = useTranslation(['home', 'common']);
 
   // 2. ボタンのデータを定義（言語に依存しないキーを追加）
-  const buttonData = useMemo(() => [
-    { key: 'timetable', path: '/timetable' },
-    { key: 'notification', path: '/studentnotification' },
-    { key: 'languageSettings', path: '/language' },
-    // ログアウトはcommon.jsonのキーを使用
-    { key: 'logout', path: '/', ns: 'common' },
-  ], []);
+  const buttonData = [
+    { key: 'timetable', path: route('student.timetable.view') },
+    { key: 'notification', path: route('student.notice') },
+    { key: 'languageSettings', path: route('language.view') },
+  ];
 
   // フォントサイズを決定する関数
   const getFontSize = (key: string) => {
     if (i18n.language === 'en') {
-        if (key === 'languageSettings') {
-            return '20px'; // 英語のLanguage Settings
-        }
-        return '24px'; // 英語のデフォルト
+      if (key === 'languageSettings') {
+        return '20px'; // 英語のLanguage Settings
+      }
+      return '24px'; // 英語のデフォルト
     }
     // 日本語の場合
     return '28px'; // 日本語のデフォルト
@@ -51,26 +50,38 @@ export default function StudentHome() {
       </Box>
 
       <div className={`button-container ${i18n.language === 'en' ? 'lang-en' : ''}`}>
-        {buttonData.map(({ key, path, ns }) => (
+        {buttonData.map(({ key, path }) => (
           <Button
-            key={key}
+            key={`${'home'}-${key}`}
             component={Link}
             href={path}
             variant="filled"
             radius="lg"
             className="home-button"
             style={{ fontSize: getFontSize(key) }}
-            onClick={() => {
-              // 4. 言語に依存しないキーで判定
-              if (key === 'logout') {
-                console.log("ログアウト処理を実行");
-              }
-            }}
           >
             {/* home.jsonのstudentセクションからキーを呼び出す */}
-            {t(`student.${key}`, { ns: ns || 'home' })}
+            {t(`student.${key}`, { ns: 'home' })}
           </Button>
         ))}
+
+        <Button
+          key="logout"
+          variant="filled"
+          radius="lg"
+          className="home-button"
+          style={{ fontSize: getFontSize('logout') }}
+          onClick={async () => {
+            try {
+              await axios.post(route('student.logout'));
+              window.location.href = '/';
+            } catch (e) {
+              console.error('Logout failed:', e);
+            }
+          }}
+        >
+          {t('student.logout', { ns: 'common' })}
+        </Button>
       </div>
 
       {/* --- CSSスタイル --- */}
@@ -83,14 +94,15 @@ export default function StudentHome() {
           justify-content: center; /* ボタンを中央揃え */
         }
         .home-button {
+          min-width: 160px;
+          padding: 20px;
           height: 150px;
-          width: 160px;
-          white-space: normal; /* テキストの折り返しを許可 */
-          word-break: break-word; /* 単語の途中でも改行 */
+          white-space: normal;
+          word-break: break-word;
         }
         .lang-en .home-button {
-          height: 150px; /* 英語でも高さを統一 */
-          width: 180px; /* 少し幅を広げる */
+          min-width: 180px; /* 英語だと少し余裕 */
+          max-width: 250px;  /* 長すぎないように上限 */
         }
         @media (max-width: 768px) {
           .button-container {
