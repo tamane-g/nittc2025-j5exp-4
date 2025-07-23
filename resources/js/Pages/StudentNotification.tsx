@@ -17,9 +17,8 @@ interface TimetableEntry {
 }
 
 interface ClassChange {
-  before_date: string;
+  date: string;
   before_timetable: TimetableEntry;
-  after_date: string;
   after_timetable: TimetableEntry;
 }
 
@@ -46,7 +45,7 @@ export default function StudentNotification() {
   // テーブルの行を生成
   const rows = classChanges.map((item, index) => (
     <Table.Tr key={index}>
-      <Table.Td>{item.before_date}</Table.Td>
+      <Table.Td>{item.date}</Table.Td>
       <Table.Td>{`${item.before_timetable.subject.name} (${item.before_timetable.user.name}先生) - ${item.before_timetable.room.name}`}</Table.Td>
       <Table.Td>{`${item.after_timetable.subject.name} (${item.after_timetable.user.name}先生) - ${item.after_timetable.room.name}`}</Table.Td>
     </Table.Tr>

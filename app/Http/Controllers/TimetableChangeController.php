@@ -49,9 +49,8 @@ class TimetableChangeController extends Controller
     {
         $validated = $request->validate([
             'teacher_id' => 'required|exists:users,id',
-            'before_date' => 'required|date',
-            'before_timetable_id' => 'nullable|exists:timetables,id',
-            'after_date' => 'required|date',
+            'date' => 'required|date',
+            'before_timetable_id' => 'required|exists:timetables,id',
             'after_timetable_id' => 'required|exists:timetables,id',
         ]);
 
@@ -62,13 +61,11 @@ class TimetableChangeController extends Controller
         try {
             $this->checkOverlap(
                 null,
-                $validated['after_date'],
-                $afterTimetableEntry->day,
-                $afterTimetableEntry->lesson,
-                $afterTimetableEntry->term,
+                $validated['date'],
+                $validated['lesson'],
                 $validated['teacher_id'],
-                $validated['room_id'],
-                $validated['school_class_id'] // ★ 追加: school_class_id を渡す
+                $afterTimetableEntry->room->id,
+                $afterTimetableEntry->schoolClass->id,
             );
         } catch (ValidationException $e) {
             return Redirect::route('timetablechange.view') // 教師の申請フォームページにリダイレクト
@@ -110,16 +107,13 @@ class TimetableChangeController extends Controller
      * @return \Illuminate\Http\RedirectResponse
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function update(Request $request, TimetableChange $timetableChange): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, TimetableChange $timetableChange): RedirectResponse
     {
         $validated = $request->validate([
             'teacher_id' => 'sometimes|exists:users,id',
-            'before_date' => 'sometimes|date',
+            'date' => 'sometimes|date',
             'before_timetable_id' => 'sometimes|nullable|exists:timetables,id',
-            'after_date' => 'sometimes|date',
             'after_timetable_id' => 'sometimes|exists:timetables,id',
-            'room_id' => 'sometimes|exists:rooms,id', // ★ 追加: room_id のバリデーション
-            'school_class_id' => 'sometimes|exists:school_classes,id', // ★ 追加: school_class_id のバリデーション
             'approval' => 'sometimes|boolean',
         ]);
 
@@ -132,13 +126,11 @@ class TimetableChangeController extends Controller
         try {
             $this->checkOverlap(
                 $timetableChange->id,
-                $validated['after_date'] ?? $timetableChange->after_date,
-                $afterTimetableEntry->day,
-                $afterTimetableEntry->lesson,
-                $afterTimetableEntry->term,
-                $validated['teacher_id'] ?? $timetableChange->teacher_id,
-                $validated['room_id'] ?? $timetableChange->room_id, // ★ 追加: room_id を渡す
-                $validated['school_class_id'] ?? $timetableChange->school_class_id // ★ 追加: school_class_id を渡す
+                $validated['date'],
+                $validated['lesson'],
+                $validated['teacher_id'],
+                $afterTimetableEntry->room->id,
+                $afterTimetableEntry->schoolClass->id,
             );
         } catch (ValidationException $e) {
             return Redirect::route('timetablechange.index') // 管理者の一覧ページにリダイレクト
@@ -157,16 +149,17 @@ class TimetableChangeController extends Controller
      * routes/web.php の Route::post('/change', ...) に対応 (timetablechange.approve)
      * (管理者のみアクセス)
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request  $request!
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function approve(Request $request): \Illuminate\Http\RedirectResponse // approve メソッドとして定義
+    public function approve(Request $request): RedirectResponse // approve メソッドとして定義
     {
         $validated = $request->validate([
+            'id' => 'required|integer|exists:timetable_changes,id',
             'approval' => 'required|boolean',
         ]);
 
-        $timetableChange->update($validated);
+        TimetableChange::findOrFail($validated['id'])->update($validated);
 
         // 時間割変更申請一覧ページにリダイレクトし、成功メッセージをフラッシュ
         return Redirect::route('timetablechange.index')->with('success', '時間割変更申請の承認状態を更新しました。');
@@ -192,38 +185,27 @@ class TimetableChangeController extends Controller
      * (プライベートヘルパーメソッド)
      *
      * @param int|null $currentChangeId 現在更新中の変更ID (新規作成時はnull)
-     * @param string $afterDate 変更後の日付
      * @param string $day 変更後の曜日 (Timetableから取得)
      * @param string $lesson 変更後の時限 (Timetableから取得)
      * @param string $term 変更後の学期 (Timetableから取得)
      * @param int $teacherId 変更後の教師ID
-     * @param int $roomId 変更後の部屋ID
-     * @param int $schoolClassId 変更後のクラスID
      * @throws \Illuminate\Validation\ValidationException
      */
     protected function checkOverlap(
         ?int $currentChangeId,
-        string $afterDate,
-        string $day,
+        string $date,
         string $lesson,
-        string $term,
         int $teacherId,
-        int $roomId, // ★ 追加: room_id パラメータ
-        int $schoolClassId // ★ 追加: school_class_id パラメータ
+        int $roomId,
+        int $schoolClassId,
     ): void {
-        // 同じ日付、同じTimetableスロット（曜日、時限、学期）を持つ既存の変更を検索
-        $query = TimetableChange::where('after_date', $afterDate)
+        // 同じ日の同じ時間帯の変更を検索
+        $query = TimetableChange::where('date', $date)
             ->whereHas('afterTimetable', function ($query) use ($day, $lesson, $term) {
-                $query->where('day', $day)
-                      ->where('lesson', $lesson)
-                      ->where('term', $term);
+                $query->where('lesson', $lesson);
             })
-            // 承認済みまたは申請中の変更のみを対象とする
-            ->where(function ($query) {
-                $query->where('approval', true)
-                      ->orWhere('approval', false);
-            });
- 
+            ->with(['afterTimetable.room', 'afterTimetable.schoolClass', 'afterTimetable.teacher']);
+
         // 更新の場合、自分自身のレコードは重複チェックから除外
         if ($currentChangeId !== null) {
             $query->where('id', '!=', $currentChangeId);
@@ -235,15 +217,15 @@ class TimetableChangeController extends Controller
             $errors = [];
  
             // 教師の重複チェック
-            if ($change->teacher_id === $teacherId) {
+            if ($change->afterTimetable->teacher->id === $teacherId) {
                 $errors['teacher_id'] = 'この教師は、指定された日時・時限に既に他の変更が申請/承認されています。';
             }
             // 部屋の重複チェック
-            if ($change->room_id === $roomId) { // ★ room_id の重複チェックを追加
+            if ($change->afterTimetable->room->id === $roomId) {
                 $errors['room_id'] = 'この部屋は、指定された日時・時限に既に他の変更が申請/承認されています。';
             }
             // クラスの重複チェック
-            if ($change->school_class_id === $schoolClassId) { // ★ school_class_id の重複チェックを追加
+            if ($change->afterTimetable->schoolClass->id === $schoolClassId) {
                 $errors['school_class_id'] = 'このクラスは、指定された日時・時限に既に他の変更が申請/承認されています。';
             }
  

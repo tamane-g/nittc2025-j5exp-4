@@ -58,10 +58,17 @@ class TimetableChangeSeeder extends Seeder
             // 変更2: 水曜日の授業(wednesdaySlot)を、火曜日に移動する申請
             TimetableChange::create([
                 'teacher_id' => $teacher->id,
-                'before_date' => $today,
+                'date' => $today,
                 'before_timetable_id' => $todaySlot->id,
-                'after_date' => $yesterday,
                 'after_timetable_id' =>$yesterdaySlot->id,
+                'approval' => true,
+            ]);
+
+            TimetableChange::create([
+                'teacher_id' => $teacher->id,
+                'date' => $yesterday,
+                'before_timetable_id' => $yesterdaySlot->id,
+                'after_timetable_id' =>$todaySlot->id,
                 'approval' => true,
             ]);
         }

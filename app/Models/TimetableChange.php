@@ -14,15 +14,13 @@ class TimetableChange extends Model
      */
     protected $fillable = [
         'teacher_id', // ★ user_id から teacher_id に変更
-        'before_date',
+        'date',
         'before_timetable_id',
-        'after_date',
         'after_timetable_id',
         'approval', // ★ is_approved から approval に変更
     ];
     protected $casts = [
-        'before_date' => 'datetime',
-        'after_date' => 'datetime',
+        'date' => 'datetime',
     ];
 
     /**
