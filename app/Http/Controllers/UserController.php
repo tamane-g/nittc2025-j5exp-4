@@ -246,6 +246,31 @@ class UserController extends Controller
      */
     public function notice()
     {
-        return Inertia::render("StudentNotification", ["notice" => auth('student')->user()->notifications]);
+        $student = auth('student')->user();
+
+        // 1. 生徒個人に紐づく通知を取得
+        $personalNotifications = $student->notifications;
+
+        // 2. 生徒が所属するクラスに紐づく通知を取得
+        $classNotifications = $student->schoolClass->notifications;
+
+        // 3. 2つのコレクションをマージ（結合）
+        $allNotifications = collect($personalNotifications)->merge($classNotifications);
+
+        // 4. マージした各通知から不要なIDを取り除き、新しいコレクションを作成
+        $formattedNotifications = $allNotifications->map(function ($notification) {
+            // Eloquentモデルをコレクションに変換し、指定したキーを除外する
+            return collect($notification)->except(['user_id', 'school_class_id']);
+        });
+
+        // 5. 最終的なコレクションを日付でソート
+        $sortedNotifications = $formattedNotifications
+            ->sortByDesc('created_at')
+            ->values();
+
+        // 6. フロントエンドに渡す
+        return Inertia::render("StudentNotification", [
+            "notice" => $sortedNotifications
+        ]);
     }
 }

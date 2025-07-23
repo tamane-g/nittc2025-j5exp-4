@@ -1,50 +1,49 @@
 // resources/js/Pages/TeacherNotification.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react'; // useStateをインポート
 import { Box, Container, Table, Button, Group } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
-// Inertia's Link is no longer needed for the back button, but you might need it elsewhere
 import { usePage } from '@inertiajs/react';
 
-// --- Data Type Definition ---
+// --- バックエンドから渡されるデータの型定義 ---
+interface NoticeFromBackend {
+  id: number;
+  teacher_id: number;
+  title?: string | null;
+  description?: string | null;
+  owner?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// --- フロントエンドで表示に使うデータの型定義 (descriptionを追加) ---
 interface TeacherNotice {
   user: string;
-  // 3. Use a language-independent key for the subject
-  approvalKey: 'rejected' | 'approved' | 'changeNeeded';
+  subject: string;
+  description: string; // 詳細表示のために追加
   date: string;
 }
 
 // --- Main Component ---
 export default function TeacherNotification() {
-  // 1. Specify the 'notification' and 'common' namespaces
-  const { t, i18n } = useTranslation(['notification', 'common']);
-  const [notifications, setNotifications] = useState<TeacherNotice[]>([]);
-  const { props } = usePage();
+  const { t } = useTranslation(['notification', 'common']);
+  
+  // 1. 開いている行のインデックスを管理するStateを追加
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
-  console.log(props);
+  const { notice: noticesFromProps } = usePage().props as { notice: NoticeFromBackend[] };
 
-  useEffect(() => {
-    // This is a placeholder for your actual API call.
-    const fetchNotifications = async () => {
-      try {
-        // const response = await axios.get('/api/teacher/notifications');
-        // setNotifications(response.data);
-
-        // For now, we'll use mock data that is set after `t` is ready.
-        const mockData: TeacherNotice[] = [
-          { user: t('teacher.name', { ns: 'notification' }), approvalKey: 'rejected', date: '2025-07-21' },
-          { user: t('admin', { ns: 'common' }), approvalKey: 'approved', date: '2025-07-20' },
-          { user: t('admin', { ns: 'common' }), approvalKey: 'changeNeeded', date: '2025-07-19' },
-        ];
-        setNotifications(mockData);
-
-      } catch (error) {
-        console.error("Error fetching teacher notifications:", error);
-      }
+  const notifications: TeacherNotice[] = noticesFromProps.map((item) => {
+    const formattedDate = new Date(item.created_at).toISOString().split('T')[0];
+    
+    return {
+      user: item.owner || t('admin', { ns: 'common' }),
+      subject: item.title || `(${t('teacher.noSubject', { ns: 'notification' })})`,
+      // descriptionもここで設定
+      description: item.description || '', 
+      date: formattedDate,
     };
-    fetchNotifications();
-  }, [i18n.language, t]); // Re-fetch or re-set data when language changes
+  });
 
   // --- Table Headers ---
   const tableHeaders = [
@@ -52,11 +51,16 @@ export default function TeacherNotification() {
     { key: 'subject', label: t('teacher.subject', { ns: 'notification' }) },
     { key: 'date', label: t('teacher.date', { ns: 'notification' }) },
   ];
+  
+  // 2. 件名クリック時の処理を定義
+  const handleSubjectClick = (index: number) => {
+    // 同じ行がクリックされたら閉じる、違う行なら開く
+    setExpandedIndex(expandedIndex === index ? null : index);
+  };
 
   return (
     <Container className="notification-container">
       <Box className="notification-header">
-        {/* 2. Use the correct key for the title */}
         {t('teacher.title', { ns: 'notification' })}
       </Box>
 
@@ -70,20 +74,32 @@ export default function TeacherNotification() {
         </Table.Thead>
         <Table.Tbody>
           {notifications.map((item, index) => (
-            <Table.Tr key={index}>
-              <Table.Td>{item.user}</Table.Td>
-              {/* 3. Translate the subject using the language-independent key */}
-              <Table.Td style={{ color: '#3B72C3' }}>
-                {t(`teacher.${item.approvalKey}`, { ns: 'notification' })}
-              </Table.Td>
-              <Table.Td>{item.date}</Table.Td>
-            </Table.Tr>
+            // 3. React.Fragment を使って複数の行をグループ化
+            <React.Fragment key={index}>
+              <Table.Tr>
+                <Table.Td>{item.user}</Table.Td>
+                <Table.Td
+                  onClick={() => handleSubjectClick(index)} // クリックイベントを追加
+                  style={{ color: '#3B72C3', cursor: 'pointer', fontWeight: 'bold' }} // クリック可能であることを示すスタイル
+                >
+                  {item.subject}
+                </Table.Td>
+                <Table.Td>{item.date}</Table.Td>
+              </Table.Tr>
+              {/* 4. expandedIndexが現在の行と一致する場合に詳細行を表示 */}
+              {expandedIndex === index && (
+                <Table.Tr>
+                  <Table.Td colSpan={tableHeaders.length} style={{ textAlign: 'left', padding: '16px' }}>
+                    {item.description}
+                  </Table.Td>
+                </Table.Tr>
+              )}
+            </React.Fragment>
           ))}
         </Table.Tbody>
       </Table>
 
       <Group className="back-button-group">
-        {/* 4. Use a standard button to go back to the previous page */}
         <Button
           onClick={() => window.history.back()}
           variant="filled"
@@ -96,6 +112,7 @@ export default function TeacherNotification() {
 
       {/* --- Styles --- */}
       <style>{`
+        /* スタイル部分は変更なしなので省略 */
         .notification-container {
           padding-top: 120px;
         }
