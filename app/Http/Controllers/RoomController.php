@@ -9,7 +9,7 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class RoomsController extends Controller // クラス名を SchoolClassController から RoomsController に変更
+class RoomController extends Controller // クラス名を SchoolClassController から RoomsController に変更
 {
     /**
      * 教室の一覧を取得し、Inertia.js コンポーネントで表示します。

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Inertia\Inertia; // Inertia.js のレンダリングのため追加
 
 class TeacherController extends Controller
 {
@@ -60,5 +61,10 @@ class TeacherController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function notice()
+    {
+        return Inertia::render("TeacherNotification", auth('teacher')->user()->notifications);
     }
 }

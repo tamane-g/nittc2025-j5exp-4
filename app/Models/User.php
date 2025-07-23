@@ -30,4 +30,8 @@ class User extends Authenticatable
         // users テーブルの school_class_id が school_classes テーブルの id を参照する
         return $this->belongsTo(SchoolClass::class, 'school_class_id', 'id');
     }
+    public function notifications()
+    {
+        return $this->hasMany(UserNotification::class);
+    }
 }

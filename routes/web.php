@@ -24,10 +24,10 @@ Route::middleware(['auth:student'])->group(function () {
 
 // 認証済み教師のみアクセス可能
 Route::middleware(['auth:teacher'])->group(function () {
+    Route::get('/timetable', [TimetableController::class, 'teacherView'])->name('timetable.teacher.view'); // Timetable
     Route::get('/change', [TimetableChangeController::class, 'show'])->name('timetablechange.view');
     Route::post('/change', [TimetableChangeController::class, 'store'])->name('timetablechange.store');
     Route::get('/notice', [TeacherController::class, 'notice'])->name('teacher.notice');
-    
 });
 
 // 認証済み管理者のみアクセス可能
@@ -38,7 +38,6 @@ Route::middleware(['auth:admin'])->group(function () {
     Route::post('/regist', [UserController::class, 'import'])->name('regist.import');
     Route::get('/remove', [UserController::class, 'remove'])->name('remove.view');
     Route::get('/remove', [UserController::class, 'delete'])->name('remove.import');
-    
 });
 
 Route::prefix('student')->name('student.')->group(function(){
