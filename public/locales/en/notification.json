@@ -1,0 +1,21 @@
+{
+  "teacher": {
+    "title": "Notification",
+    "sender": "Sender",
+    "subject": "Subject",
+    "date": "Date",
+    "name": "Name",
+    "rejected": "Rejected",
+    "approved": "Approved",
+    "changeNeeded": "Change Needed"
+  },
+  "student": {
+    "title": "Class Change Notification",
+    "date": "Date",
+    "period": "Period",
+    "before": "Before Change",
+    "after": "After Change",
+    "realtimeOSEngineering": "Realtime OS Engineering",
+    "embeddedSystemsOverview": "Embedded Systems Overview"
+  }
+}

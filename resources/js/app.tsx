@@ -1,5 +1,6 @@
 import '../css/app.css';
 import './bootstrap';
+import './i18n';
 
 import { createInertiaApp } from '@inertiajs/react';
 // resolvePageComponentは使わないので削除してもOK

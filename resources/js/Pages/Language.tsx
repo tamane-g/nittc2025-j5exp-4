@@ -1,37 +1,39 @@
+// resources/js/Pages/Language.tsx
+
 import React, { useEffect } from 'react';
-import {
-  Box,
-  Button,
-  Group,
-  Stack,
-  Container,
-  Select,
-} from '@mantine/core';
+import { Box, Button, Group, Stack, Container, Select } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { Link } from '@inertiajs/react';
+// Linkは不要になるので削除してもOKです
+// import { Link } from '@inertiajs/react';
 
 export default function Language() {
-  const { t, i18n } = useTranslation();
+  // 1. 'common'の名前空間を明示的に指定
+  const { t, i18n } = useTranslation('common');
 
+  // 2. 画面表示時に一度だけ言語設定をサーバーから取得
   useEffect(() => {
     const fetchLanguage = async () => {
       try {
         const response = await axios.get('/language');
-        if (response.data && response.data.user && response.data.user.language) {
-          i18n.changeLanguage(response.data.user.language);
+        const lang = response.data?.user?.language;
+        if (lang && i18n.language !== lang) {
+          i18n.changeLanguage(lang);
         }
       } catch (error) {
         console.error("Error fetching language:", error);
       }
     };
     fetchLanguage();
-  }, [i18n]);
+  }, []); // 依存配列を空にして、初回レンダリング時のみ実行
 
+  // 言語が変更されたときの処理
   const handleLanguageChange = async (value: string | null) => {
     if (value) {
       try {
+        // サーバーに新しい言語設定を保存
         await axios.post('/language', { language: value });
+        // フロントエンドの言語を即座に切り替え
         i18n.changeLanguage(value);
       } catch (error) {
         console.error("Error updating language:", error);
@@ -43,6 +45,7 @@ export default function Language() {
     <>
       <Container className="language-container">
         <Box className="language-header">
+          {/* 3. キーを直接指定 */}
           {t('languageSettings')}
         </Box>
 
@@ -51,8 +54,9 @@ export default function Language() {
             label={t('language')}
             placeholder={t('selectLanguage')}
             data={[
-              { value: 'ja', label: t('Language.japanese') },
-              { value: 'en', label: t('Language.english') },
+              // 3. キーを直接指定
+              { value: 'ja', label: t('japanese') },
+              { value: 'en', label: t('english') },
             ]}
             size="lg"
             value={i18n.language}
@@ -61,7 +65,13 @@ export default function Language() {
         </Stack>
 
         <Group className="language-buttons">
-          <Button component={Link} href={'/'} variant="filled" radius="xs" className="back-button">
+          {/* 4. 直前のページに戻るボタン */}
+          <Button
+            onClick={() => window.history.back()}
+            variant="filled"
+            radius="xs"
+            className="back-button"
+          >
             {t('back')}
           </Button>
         </Group>

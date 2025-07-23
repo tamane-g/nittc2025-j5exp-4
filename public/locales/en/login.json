@@ -1,0 +1,9 @@
+{
+  "title": "Login",
+  "username": "Username",
+  "usernamePlaceholder": "Teacher / Student / Admin",
+  "password": "Password",
+  "passwordPlaceholder": "password",
+  "submit": "Submit",
+  "invalidUser": "Invalid username"
+}

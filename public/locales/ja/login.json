@@ -1,0 +1,9 @@
+{
+  "title": "ログイン",
+  "username": "ユーザ名",
+  "usernamePlaceholder": "教師 / 学生 / 管理者",
+  "password": "パスワード",
+  "passwordPlaceholder": "パスワード",
+  "submit": "送信",
+  "invalidUser": "無効なユーザ名です"
+}
