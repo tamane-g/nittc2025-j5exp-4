@@ -132,7 +132,7 @@ export default function TimetableChange() {
 
         <div className="row-container">
             <div className="split-box">
-                <div className="left-half">{t('date')}</div>
+                <div className="left-half">{t('date', { ns: 'common' })}</div>
                 <div className="right-half">{t('datePlaceholder')}</div>
             </div>
             <div className="select-box">
@@ -158,7 +158,7 @@ export default function TimetableChange() {
 
         <div className="send-button-container">
             <Button type="submit" variant="filled" size="xl" style={{ width: '150px' }} loading={processing}>
-                {t('send')}
+                {t('send', { ns: 'common' })}
             </Button>
         </div>
       </form>

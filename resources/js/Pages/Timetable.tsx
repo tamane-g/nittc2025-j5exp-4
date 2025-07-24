@@ -1,100 +1,70 @@
 // resources/js/Pages/Timetable.tsx
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { Table, Button } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
-import { usePage, Link } from '@inertiajs/react';
+import { usePage, router } from '@inertiajs/react';
 
 // --- データ型の定義 ---
-interface UserProps {
-  user?: { id?: string; name?: string; class?: string; number?: string; }; // ユーザー情報を拡充
-  [key: string]: any;
-}
-
 interface TimetableEntry {
+  date: string;
+  period: number;
   subject: { name: string; };
   user: { name: string; };
   room: { name: string; };
 }
 
-// --- ヘルパー関数 ---
-function getStartOfWeek(date: Date) {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = day === 0 ? -6 : 1 - day; // 日曜日を週の始まりとしない
-  d.setDate(d.getDate() + diff);
-  return d;
+interface PageProps {
+  user?: { id?: string; name?: string; class?: string; number?: string; };
+  timetable: TimetableEntry[]; // Laravelから渡される時間割データは配列であることを期待
+  first_date: string;        // Laravelから渡される週の月曜日の日付
+  [key: string]: any;
 }
 
 // --- メインコンポーネント ---
 export default function Timetable() {
-  // 1. 名前空間を指定
   const { t, i18n } = useTranslation(['timetable', 'common']);
-  const [timetableData, setTimetableData] = useState<(TimetableEntry | null)[][]>([]);
-  const [currentMonday, setCurrentMonday] = useState(getStartOfWeek(new Date()));
-  const { props } = usePage<UserProps>();
+  const { props } = usePage<PageProps>();
   const isEnglish = i18n.language === 'en';
 
-  console.log(props);
+  // propsのtimetableデータから表示用の2次元配列を生成
+  const timetableData = useMemo(() => {
+    const newTimetable: (TimetableEntry | null)[][] = Array(4).fill(null).map(() => Array(5).fill(null));
 
-  // --- APIから時間割データを取得 ---
-  const fetchTimetable = useCallback(async () => {
-    // モックデータ（APIが未実装の場合）
-    const mockTimetable: (TimetableEntry & { day: string, period: number })[] = [
-        { day: 'monday', period: 1, subject: { name: '国語' }, user: { name: '鈴木' }, room: { name: '3-1' } },
-        { day: 'tuesday', period: 2, subject: { name: '数学' }, user: { name: '佐藤' }, room: { name: '3-2' } },
-    ];
-
-    try {
-        // APIを叩く場合はこちらを有効化
-        /*
-        const formattedDate = currentMonday.toISOString().split('T')[0];
-        const userId = props.user?.id;
-        if (!userId) return;
-
-        const response = await axios.get('/api/timetable', {
-            params: { first_date: formattedDate, user_id: userId },
-        });
-        const fetchedData = response.data.timetable;
-        */
-
-        const fetchedData = mockTimetable; // API実装まではモックを使用
-
-        const newTimetable: (TimetableEntry | null)[][] = Array(4).fill(null).map(() => Array(5).fill(null));
-
-        fetchedData.forEach(entry => {
-            const dayIndex = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].indexOf(entry.day.toLowerCase());
-            if (dayIndex !== -1 && entry.period >= 1 && entry.period <= 4) {
-                newTimetable[entry.period - 1][dayIndex] = entry;
-            }
-        });
-        setTimetableData(newTimetable);
-
-    } catch (error) {
-        console.error("Error fetching timetable:", error);
+    // props.timetableが配列であることを確認してからループ処理
+    if (Array.isArray(props.timetable)) {
+      props.timetable.forEach(entry => {
+        const entryDate = new Date(entry.date);
+        // UTC日付として扱うことでタイムゾーンの問題を回避
+        const dayIndex = (entryDate.getUTCDay() + 6) % 7; // 月曜日を0とする
+        if (dayIndex >= 0 && dayIndex < 5 && entry.period >= 1 && entry.period <= 4) {
+          newTimetable[entry.period - 1][dayIndex] = entry;
+        }
+      });
     }
-  }, [currentMonday, props.user?.id]);
-
-  useEffect(() => {
-    fetchTimetable();
-  }, [fetchTimetable, i18n.language]); // 言語変更時にも再取得
+    return newTimetable;
+  }, [props.timetable]);
 
   // --- 週移動 ---
   const changeWeek = (offset: number) => {
-    setCurrentMonday(prev => {
-      const newMonday = new Date(prev);
-      newMonday.setDate(newMonday.getDate() + offset * 7);
-      return newMonday;
+    const currentDay = new Date(props.first_date);
+    // UTCとして日付を操作
+    currentDay.setUTCDate(currentDay.getUTCDate() + offset * 7);
+    const newDate = currentDay.toISOString().split('T')[0];
+
+    // Inertia routerで同じページに新しい日付パラメータを付けてアクセス
+    router.get(route('timetable.show'), { first_date: newDate }, {
+        preserveState: true,
+        preserveScroll: true,
     });
   };
 
   // --- 表示用データ ---
-  const startOfWeek = currentMonday;
+  const startOfWeek = new Date(props.first_date);
   const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(endOfWeek.getDate() + 4);
-  const formatDate = (date: Date) => `${date.getMonth() + 1}${t('month')}${date.getDate()}${t('day')}`;
+  endOfWeek.setUTCDate(endOfWeek.getUTCDate() + 4);
 
+  const formatDate = (date: Date) => `${date.getUTCMonth() + 1}${t('month')}${date.getUTCDate()}${t('day')}`;
   const weekHeaders = [t('monday'), t('tuesday'), t('wednesday'), t('thursday'), t('friday')];
 
   return (
@@ -106,7 +76,6 @@ export default function Timetable() {
           <button onClick={() => changeWeek(1)}>→</button>
         </div>
         <div className="top-right-box">
-          {/* 2. 翻訳キーを修正 */}
           {props.user?.class}{t('class')} {props.user?.number}{t('number')} {props.user?.name}{t('studentName')}
         </div>
       </div>
@@ -135,13 +104,11 @@ export default function Timetable() {
       </Table>
       
       <div className="back-button-container">
-        {/* 3. 戻るボタンを修正 */}
         <Button onClick={() => window.history.back()} variant="filled" size="xl" style={{ width: '150px' }}>
           {t('back', { ns: 'common' })}
         </Button>
       </div>
 
-      {/* --- CSSスタイルは省略 --- */}
       <style>{`
         .custom-table {
           table-layout: fixed !important;
@@ -152,13 +119,13 @@ export default function Timetable() {
           margin-top: 50px; 
         }
         .custom-table th, .custom-table td {
-          min-width: 100px; /* width を min-width に変更 */
+          min-width: 100px;
           height: 90px;
           text-align: center;
           vertical-align: middle;
           border: 1px solid white;
           user-select: none;
-          white-space: nowrap; /* nowrap に戻す */
+          white-space: pre-wrap; /* 改行を有効にする */
         }
         .header-black {
           background-color: black !important;
@@ -170,36 +137,31 @@ export default function Timetable() {
           border: 1px solid white;
           text-align: center;
           vertical-align: middle;
-          font-size: 50px; /* 元の 50px に戻す */
+          font-size: 50px;
         }
         .header-blue.english {
-          font-size: 20px; /* 英語の場合のフォントサイズ */
+          font-size: 20px;
         }
         .ag-cell {
           text-align: center;
           user-select: none;
           font-size: 30px;
-        }       
-        .ag-cell[col-id="idColumn"] {
-          background-color: rgb(190, 190, 190) !important;
-        }        
+        }
         .highlight-cell-odd {
           background-color: rgb(190, 209, 255) !important;
-        }      
+        }
         .highlight-cell-even {
           background-color: rgb(219, 223, 255) !important;
         }
-
         .rectangle {
           position: relative;
           width: 100%;
           height: 120px;
           background-color: rgb(12, 106, 207) !important;
           margin-bottom: 10px;
-          display: flex;               
-          align-items: flex-start;    
+          display: flex;
+          align-items: flex-start;
         }
-
         .date-selector {
           background-color: white;
           padding: 10px 10px;
@@ -212,7 +174,6 @@ export default function Timetable() {
           margin-top: 20px;
           margin-Left: 20px;
           border: 2px solid black;
-          
         }
         .date-selector button {
           font-size: 30px;
@@ -225,7 +186,7 @@ export default function Timetable() {
           position: absolute;
           top: 25px;
           right: 30px;
-          height: 60px;  /* ← 高さは必要なら固定 */
+          height: 60px;
           background-color: white;
           border: 2px solid black;
           display: flex;
@@ -233,61 +194,24 @@ export default function Timetable() {
           justify-content: center;
           font-size: 20px;
           font-weight: bold;
-          padding: 0 20px;  
+          padding: 0 20px;
           box-sizing: border-box; 
         }
-
         .back-button-container {
           position: absolute;
           left: 50px;
           bottom: 70px;
         }
-        
         @media (max-width: 768px) {
-          .custom-table {
-            margin-top: 20px;
-          }
-          .custom-table th, .custom-table td {
-            width: auto;
-            height: 60px;
-            font-size: 12px;
-          }
-          .header-blue {
-            font-size: 18px;
-          }
-          .ag-cell {
-            font-size: 14px;
-          }
-          .rectangle {
-            height: auto;
-            flex-direction: column;
-            align-items: center;
-            padding: 10px;
-          }
-          .date-selector {
-            font-size: 16px;
-            flex-direction: column;
-            width: 100%;
-            margin: 10px 0 0 0;
-            padding: 10px 0;
-            align-items: center;
-          }
-          .date-selector button {
-            font-size: 18px;
-          }
-          .top-right-box {
-            position: static;
-            margin-top: 10px;
-            font-size: 12px;
-            width: 90%;
-            text-align: center;
-          }
-          .back-button-container {
-            position: static;
-            margin: 20px auto;
-            width: 100%;
-            text-align: center;
-          }
+          .custom-table { margin-top: 20px; }
+          .custom-table th, .custom-table td { height: 60px; font-size: 12px; }
+          .header-blue { font-size: 18px; }
+          .ag-cell { font-size: 14px; }
+          .rectangle { height: auto; flex-direction: column; align-items: center; padding: 10px; }
+          .date-selector { font-size: 16px; flex-direction: column; width: 90%; margin: 10px 0 0 0; padding: 10px 0; align-items: center; }
+          .date-selector button { font-size: 18px; }
+          .top-right-box { position: static; margin-top: 10px; font-size: 12px; width: 90%; text-align: center; }
+          .back-button-container { position: static; margin: 20px auto; width: 100%; text-align: center; }
         }
       `}</style>
     </>
