@@ -1,0 +1,21 @@
+{
+  "languageSettings": "言語設定",
+  "language": "言語",
+  "selectLanguage": "選択してください",
+  "back": "戻る",
+  "home": "ホーム",
+  "logout": "ログアウト",
+  "send": "送信",
+  "date": "日付",
+  "teacher": "先生",
+  "admin": "管理者",
+  "japanese": "日本語",
+  "english": "英語",
+  "math": "数学",
+  "programming": "プログラミング",
+  "experiment": "実験",
+  "physicalEducation": "体育",
+  "student": {
+    "logout": "ログアウト"
+  }
+}

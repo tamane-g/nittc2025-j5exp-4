@@ -1,0 +1,18 @@
+{
+  "teacherName": "教師名",
+  "beforeChange": "変更前",
+  "afterChange": "変更後",
+  "generalSubjects": "一般科目",
+  "specializedSubjects": "専門科目",
+  "logicCircuit": "論理回路",
+  "replacer": "交代者",
+  "replacerName": "交代者名",
+  "applicant": "申請者",
+  "applicantName": "申請者名",
+  "datePlaceholder": "YYYY/MM/DD",
+  "location": "場所",
+  "practiceRoom": "実習室",
+  "gym": "体育館",
+  "time": "時間",
+  "timePlaceholder": "HH:MM"
+}

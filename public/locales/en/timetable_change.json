@@ -1,0 +1,18 @@
+{
+  "teacherName": "Teacher Name",
+  "beforeChange": "Before Change",
+  "afterChange": "After Change",
+  "generalSubjects": "General Subjects",
+  "specializedSubjects": "Specialized Subjects",
+  "logicCircuit": "Logic Circuit",
+  "replacer": "Replacer",
+  "replacerName": "Replacer Name",
+  "applicant": "Applicant",
+  "applicantName": "Applicant Name",
+  "datePlaceholder": "YYYY/MM/DD",
+  "location": "Location",
+  "practiceRoom": "Practice Room",
+  "gym": "Gym",
+  "time": "Time",
+  "timePlaceholder": "HH:MM"
+}

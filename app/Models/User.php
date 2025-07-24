@@ -2,47 +2,36 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
-
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
-        'email',
+        'email', // email も $fillable に追加
         'password',
+        'school_class_id', // school_class_id は既にありますが、念のため
     ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
-
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Get the school class that the user belongs to.
      */
-    protected function casts(): array
+    public function schoolClass(): BelongsTo // ★ 型ヒントを追加
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        // users テーブルの school_class_id が school_classes テーブルの id を参照する
+        return $this->belongsTo(SchoolClass::class, 'school_class_id', 'id');
+    }
+    public function notifications()
+    {
+        return $this->hasMany(UserNotification::class);
     }
 }

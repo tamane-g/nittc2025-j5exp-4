@@ -1,24 +1,33 @@
-//教師画面　パワポp4
+// resources/js/Pages/TeacherHome.tsx
 
-import React from 'react';
+import axios from 'axios';
+import React, { useMemo } from 'react';
 import { Box, Button } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Link } from '@inertiajs/react';
 
 export default function TeacherHome() {
-  const navigate = useNavigate();
+  // 1. 'home'と'common'の名前空間を指定
+  const { t, i18n } = useTranslation(['home', 'common']);
 
-  const buttonConfigs = [
-    { label: '時間割', path: '/timetable' },
-    { label: '変更申請', path: '/timetableClick' },
-    { label: '通知', path: '/notification' },
-    { label: '言語設定', path: '/language' },
-    { label: 'ログアウト', path: '/' },
+  // 2. ボタンのデータを定義（言語に依存しないキーを追加）
+  const buttonData = [
+    { key: 'timetable', path: route('teacher.timetable.view') },
+    { key: 'changeRequest', path: route('teacher.timetablechange.view') }, // 変更申請画面のパスを修正
+    { key: 'notification', path: route('teacher.notice') },
+    { key: 'languageSettings', path: route('language.view') },
   ];
 
-  const buttonStyle = {
-    height: '150px',
-    width: '160px',
-    fontSize: '28px',
+  // フォントサイズを決定する関数
+  const getFontSize = (key: string) => {
+    if (i18n.language === 'en') {
+      if (key === 'languageSettings' || key === 'changeRequest') {
+        return '20px'; // 英語の場合
+      }
+      return '24px'; // 英語のデフォルト
+    }
+    // 日本語の場合
+    return '28px'; // 日本語のデフォルト
   };
 
   return (
@@ -37,24 +46,77 @@ export default function TeacherHome() {
           justifyContent: 'center',
         }}
       >
-        ホーム
+        {/* 3. common.jsonから'home'キーを呼び出す */}
+        {t('home', { ns: 'common' })}
       </Box>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', padding: 130, paddingLeft: 40 }}>
-        {buttonConfigs.map((btn, index) => (
+
+      <div className={`button-container ${i18n.language === 'en' ? 'lang-en' : ''}`}>
+        {buttonData.map(({ key, path }) => (
           <Button
-            key={index}
+            key={`${'home'}-${key}`}
+            component={Link}
+            href={path}
             variant="filled"
             radius="lg"
-            onClick={() => navigate(btn.path)}
-            style={{
-              ...buttonStyle,
-              fontSize: btn.label === 'ログアウト' ? '25px' : buttonStyle.fontSize,
-            }}
+            className="home-button"
+            style={{ fontSize: getFontSize(key) }}
           >
-            {btn.label}
+            {/* home.jsonのteacherセクションからキーを呼び出す */}
+            {t(`teacher.${key}`, { ns: 'home' })}
           </Button>
         ))}
+
+        <Button
+          key="logout"
+          variant="filled"
+          radius="lg"
+          className="home-button"
+          style={{ fontSize: getFontSize('logout') }}
+          onClick={async () => {
+            try {
+              await axios.post(route('teacher.logout'));
+              window.location.href = '/';
+            } catch (e) {
+              console.error('Logout failed:', e);
+            }
+          }}
+        >
+          {t('teacher.logout', { ns: 'common' })}
+        </Button>
       </div>
+
+      {/* --- CSSスタイル --- */}
+      <style>{`
+        .button-container {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 20px;
+          padding: 130px 40px;
+          justify-content: center; /* ボタンを中央揃え */
+        }
+        .home-button {
+          height: 150px;
+          width: 160px;
+          white-space: normal; /* テキストの折り返しを許可 */
+          word-break: break-word; /* 単語の途中でも改行 */
+        }
+        .lang-en .home-button {
+          height: 150px; /* 英語でも高さを統一 */
+          width: 180px; /* 少し幅を広げる */
+        }
+        @media (max-width: 768px) {
+          .button-container {
+            flex-direction: column;
+            align-items: center;
+            padding: 120px 20px;
+          }
+          .home-button {
+            width: 80%;
+            max-width: 300px; /* 最大幅を設定 */
+            height: 80px;
+          }
+        }
+      `}</style>
     </div>
   );
 }

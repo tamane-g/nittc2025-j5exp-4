@@ -1,0 +1,21 @@
+{
+  "languageSettings": "Language Settings",
+  "language": "Language",
+  "selectLanguage": "Please select",
+  "back": "Back",
+  "home": "Home",
+  "logout": "Logout",
+  "send": "Send",
+  "date": "Date",
+  "teacher": "Teacher",
+  "admin": "Admin",
+  "japanese": "Japanese",
+  "english": "English",
+  "math": "Math",
+  "programming": "Programming",
+  "experiment": "Experiment",
+  "physicalEducation": "Physical Education",
+  "student": {
+    "logout": "Logout"
+  }
+}

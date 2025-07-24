@@ -16,9 +16,14 @@ return new class extends Migration
             $table->integer('grade');
             $table->integer('class');
             $table->timestamps();
-            
-            $table->index('grade');
-            $table->index('class');
+
+            // ★ 複合ユニーク制約を追加
+            // 同じ学年とクラスの組み合わせは一意であるべき
+            $table->unique(['grade', 'class'], 'unique_grade_class');
+
+            // 複合ユニークインデックスがあれば、以下の単一インデックスは通常不要です。
+            // $table->index('grade');
+            // $table->index('class');
         });
     }
 

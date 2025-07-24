@@ -1,0 +1,15 @@
+{
+  "month": "月",
+  "day": "日",
+  "year": "年",
+  "class": "組",
+  "number": "番",
+  "studentName": "氏名",
+  "empty": "",
+  "monday": "月",
+  "tuesday": "火",
+  "wednesday": "水",
+  "thursday": "木",
+  "friday": "金",
+  "searchAndChange": "授業を検索・変更する"
+}

@@ -1,0 +1,12 @@
+{
+  "registration": {
+    "title": "ユーザ登録",
+    "selectCsvFile": "CSVファイルを選択",
+    "csvFilePlaceholder": "CSVファイルを選択"
+  },
+  "remove": {
+    "title": "ユーザ削除",
+    "selectCsvFile": "CSVファイルを選択",
+    "csvFilePlaceholder": "CSVファイルを選択"
+  }
+}
