@@ -6,12 +6,6 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { usePage, Link } from '@inertiajs/react';
 
-// --- データ型の定義 ---
-interface UserProps {
-  user?: { id?: string; name?: string; class?: string; number?: string; };
-  [key: string]: any;
-}
-
 interface TimetableEntry {
   id: number; // クリック時に渡すためのID
   subject: { name: string; };
@@ -34,7 +28,8 @@ export default function TimetableClick() {
   const { t, i18n } = useTranslation(['timetable', 'common']);
   const [timetableData, setTimetableData] = useState<(TimetableEntry | null)[][]>([]);
   const [currentMonday, setCurrentMonday] = useState(getStartOfWeek(new Date()));
-  const { props } = usePage<UserProps>();
+  const { props } = usePage();
+  console.log(props);
   const isEnglish = i18n.language === 'en';
 
   // --- APIから時間割データを取得 ---

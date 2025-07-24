@@ -81,7 +81,7 @@ class TimetableChangeController extends Controller
     public function show(TimetableChange $timetableChange): Response
     {
         // 指定されたIDの申請データをリレーションと共に読み込む
-        return Inertia::render('TimetableChange', [ // 'TimetableChanges/Show' はフロントエンドのVue/Reactコンポーネントのパスを想定
+        return Inertia::render('TimetableClick', [ // 'TimetableChanges/Show' はフロントエンドのVue/Reactコンポーネントのパスを想定
             'timetableChange' => $timetableChange->load([
                 'teacher',
                 'beforeTimetable',

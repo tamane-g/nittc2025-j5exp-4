@@ -5,58 +5,84 @@ import { Table, Button } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { usePage, router } from '@inertiajs/react';
 
-// --- データ型の定義 ---
+// --- データ型の定義 (新しいpropsの構造に合わせる) ---
 interface TimetableEntry {
-  date: string;
-  period: number;
   subject: { name: string; };
-  user: { name: string; };
+  teacher: { name: string; }; // userからteacherに変更
   room: { name: string; };
+}
+
+interface DailyLessons {
+    [lessonKey: string]: TimetableEntry; //例: "lesson_1", "lesson_2"
+}
+
+interface TimetableObject {
+    [dayKey: string]: DailyLessons; // 例: "Monday", "Tuesday"
+}
+
+interface PageProps {
+  user?: { id?: string; name?: string; class?: string; number?: string; };
+  timetable: TimetableObject; // Laravelから渡される時間割データ (オブジェクト型)
+  monday: string;             // Laravelから渡される週の月曜日の日付
+  [key: string]: any;
 }
 
 // --- メインコンポーネント ---
 export default function Timetable() {
   const { t, i18n } = useTranslation(['timetable', 'common']);
-  const { props } = usePage();
-  console.log(props);
+  const { props } = usePage<PageProps>();
   const isEnglish = i18n.language === 'en';
 
-  // propsのtimetableデータから表示用の2次元配列を生成
+  // propsのtimetableオブジェクトから表示用の2次元配列を生成
   const timetableData = useMemo(() => {
     const newTimetable: (TimetableEntry | null)[][] = Array(4).fill(null).map(() => Array(5).fill(null));
+    const timetable = props.timetable || {}; // timetableがundefinedの場合も考慮
 
-    // props.timetableが配列であることを確認してからループ処理
-    if (Array.isArray(props.timetable)) {
-      props.timetable.forEach(entry => {
-        const entryDate = new Date(entry.date);
-        // UTC日付として扱うことでタイムゾーンの問題を回避
-        const dayIndex = (entryDate.getUTCDay() + 6) % 7; // 月曜日を0とする
-        if (dayIndex >= 0 && dayIndex < 5 && entry.period >= 1 && entry.period <= 4) {
-          newTimetable[entry.period - 1][dayIndex] = entry;
+    const dayMapping: { [key: string]: number } = {
+        'Monday': 0,
+        'Tuesday': 1,
+        'Wednesday': 2,
+        'Thursday': 3,
+        'Friday': 4,
+    };
+
+    // timetableオブジェクトのキー（曜日）をループ
+    for (const dayName in timetable) {
+        const dayIndex = dayMapping[dayName];
+        if (dayIndex === undefined) continue; // 想定外の曜日キーはスキップ
+
+        const lessons = timetable[dayName];
+        // lessonsオブジェクトのキー（時限）をループ
+        for (const lessonKey in lessons) {
+            const periodMatch = lessonKey.match(/lesson_(\d+)/);
+            if (periodMatch) {
+                const period = parseInt(periodMatch[1], 10);
+                if (period >= 1 && period <= 4) {
+                    newTimetable[period - 1][dayIndex] = lessons[lessonKey];
+                }
+            }
         }
-      });
     }
+
     return newTimetable;
   }, [props.timetable]);
 
   // --- 週移動 ---
   const changeWeek = (offset: number) => {
-    const currentDay = new Date(props.first_date);
-    // UTCとして日付を操作
-    currentDay.setUTCDate(currentDay.getUTCDate() + offset * 7);
+    const currentDay = new Date(props.monday);
+    currentDay.setDate(currentDay.getDate() + offset * 7);
     const newDate = currentDay.toISOString().split('T')[0];
 
-    // Inertia routerで同じページに新しい日付パラメータを付けてアクセス
-    router.get(route('timetable.show'), { first_date: newDate }, {
+    router.get(route('timetable.show'), { first_date: newDate }, { // ルート名は適宜調整
         preserveState: true,
         preserveScroll: true,
     });
   };
 
   // --- 表示用データ ---
-  const startOfWeek = new Date(props.first_date);
+  const startOfWeek = new Date(props.monday);
   const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setUTCDate(endOfWeek.getUTCDate() + 4);
+  endOfWeek.setDate(endOfWeek.getDate() + 4);
 
   const formatDate = (date: Date) => `${date.getUTCMonth() + 1}${t('month')}${date.getUTCDate()}${t('day')}`;
   const weekHeaders = [t('monday'), t('tuesday'), t('wednesday'), t('thursday'), t('friday')];
@@ -89,7 +115,7 @@ export default function Timetable() {
               <Table.Td className="ag-cell" style={{ backgroundColor: 'rgb(190, 190, 190)' }}>{rowIndex + 1}</Table.Td>
               {row.map((cell, colIndex) => (
                 <Table.Td key={colIndex} className={`ag-cell ${(rowIndex % 2 === 0) ? 'highlight-cell-odd' : 'highlight-cell-even'}`}>
-                  {cell ? `${cell.subject.name}\n${cell.user.name}${t('teacherSuffix', { ns: 'common' })}\n${cell.room.name}` : ''}
+                  {cell ? `${cell.subject.name}\n${cell.teacher.name}${t('teacherSuffix', { ns: 'common' })}\n${cell.room.name}` : ''}
                 </Table.Td>
               ))}
             </Table.Tr>
