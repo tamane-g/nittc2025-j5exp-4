@@ -47,7 +47,7 @@ const checkConflicts = (request: ChangeRequest, existingTimetable: ScheduleEntry
 };
 
 // --- メインコンポーネント ---
-export default function ManagementScreen() {
+export default function Admin() {
   // 1. 名前空間に'admin'と'common'を指定
   const { t, i18n } = useTranslation(['admin', 'common']);
 

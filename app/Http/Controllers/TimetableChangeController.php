@@ -25,7 +25,7 @@ class TimetableChangeController extends Controller
     public function index(): Response
     {
         // 'TimetableChanges/Index' はフロントエンドのVue/Reactコンポーネントのパスを想定
-        return Inertia::render('TimetableChange');
+        return Inertia::render('Admin');
     }
 
     /**

@@ -1,88 +1,84 @@
 // resources/js/Pages/TimetableClick.tsx
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { Table, Button } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
-import { usePage, Link } from '@inertiajs/react';
+import { usePage, router, Link } from '@inertiajs/react';
 
+// --- データ型の定義 (propsの構造に合わせる) ---
 interface TimetableEntry {
-  id: number; // クリック時に渡すためのID
+  id: number; // クリック時に渡すID
   subject: { name: string; };
-  user: { name: string; };
+  teacher: { name: string; }; // userからteacherに変更
   room: { name: string; };
 }
 
-// --- ヘルパー関数 ---
-function getStartOfWeek(date: Date) {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setDate(d.getDate() + diff);
-  return d;
+interface DailyLessons {
+    [lessonKey: string]: TimetableEntry; //例: "lesson_1"
+}
+
+interface TimetableObject {
+    [dayKey: string]: DailyLessons; // 例: "Monday"
+}
+
+interface PageProps {
+  user?: { id?: string; name?: string; class?: string; number?: string; };
+  timetable: TimetableObject; // Laravelから渡される時間割データ (オブジェクト型)
+  monday: string;             // Laravelから渡される週の月曜日の日付
+  [key: string]: any;
 }
 
 // --- メインコンポーネント ---
 export default function TimetableClick() {
-  // 1. 名前空間を指定
   const { t, i18n } = useTranslation(['timetable', 'common']);
-  const [timetableData, setTimetableData] = useState<(TimetableEntry | null)[][]>([]);
-  const [currentMonday, setCurrentMonday] = useState(getStartOfWeek(new Date()));
-  const { props } = usePage();
-  console.log(props);
+  const { props } = usePage<PageProps>();
   const isEnglish = i18n.language === 'en';
 
-  // --- APIから時間割データを取得 ---
-  const fetchTimetable = useCallback(async () => {
-    // モックデータ（APIが未実装の場合）
-    const mockTimetable: (TimetableEntry & { day: string, period: number })[] = [
-        { id: 101, day: 'monday', period: 1, subject: { name: '国語' }, user: { name: '鈴木' }, room: { name: '3-1' } },
-        { id: 102, day: 'tuesday', period: 2, subject: { name: '数学' }, user: { name: '佐藤' }, room: { name: '3-2' } },
-        { id: 103, day: 'friday', period: 4, subject: { name: '体育' }, user: { name: '田中' }, room: { name: '体育館' } },
-    ];
+  // propsのtimetableオブジェクトから表示用の2次元配列を生成
+  const timetableData = useMemo(() => {
+    const newTimetable: (TimetableEntry | null)[][] = Array(4).fill(null).map(() => Array(5).fill(null));
+    const timetable = props.timetable || {};
 
-    try {
-        // APIを叩く場合はこちらを有効化
-        /*
-        const formattedDate = currentMonday.toISOString().split('T')[0];
-        const userId = props.user?.id;
-        if (!userId) return;
-        const response = await axios.get('/api/timetable', { params: { first_date: formattedDate, user_id: userId } });
-        const fetchedData = response.data.timetable;
-        */
-        const fetchedData = mockTimetable;
+    const dayMapping: { [key: string]: number } = {
+        'Monday': 0, 'Tuesday': 1, 'Wednesday': 2, 'Thursday': 3, 'Friday': 4,
+    };
 
-        const newTimetable: (TimetableEntry | null)[][] = Array(4).fill(null).map(() => Array(5).fill(null));
-        fetchedData.forEach(entry => {
-            const dayIndex = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].indexOf(entry.day.toLowerCase());
-            if (dayIndex !== -1 && entry.period >= 1 && entry.period <= 4) {
-                newTimetable[entry.period - 1][dayIndex] = entry;
+    for (const dayName in timetable) {
+        const dayIndex = dayMapping[dayName];
+        if (dayIndex === undefined) continue;
+
+        const lessons = timetable[dayName];
+        for (const lessonKey in lessons) {
+            const periodMatch = lessonKey.match(/lesson_(\d+)/);
+            if (periodMatch) {
+                const period = parseInt(periodMatch[1], 10);
+                if (period >= 1 && period <= 4) {
+                    newTimetable[period - 1][dayIndex] = lessons[lessonKey];
+                }
             }
-        });
-        setTimetableData(newTimetable);
-    } catch (error) {
-        console.error("Error fetching timetable:", error);
+        }
     }
-  }, [currentMonday, props.user?.id]);
-
-  useEffect(() => {
-    fetchTimetable();
-  }, [fetchTimetable, i18n.language]);
+    return newTimetable;
+  }, [props.timetable]);
 
   // --- 週移動 ---
   const changeWeek = (offset: number) => {
-    setCurrentMonday(prev => {
-      const newMonday = new Date(prev);
-      newMonday.setDate(newMonday.getDate() + offset * 7);
-      return newMonday;
+    const currentDay = new Date(props.monday);
+    currentDay.setDate(currentDay.getDate() + offset * 7);
+    const newDate = currentDay.toISOString().split('T')[0];
+
+    // GETパラメータを付けてページを再訪問
+    router.get(route('teacher.timetablechange.view'), { first_date: newDate }, { // ルート名は適宜調整
+        preserveState: true,
+        preserveScroll: true,
     });
   };
 
   // --- 表示用データ ---
-  const startOfWeek = currentMonday;
+  const startOfWeek = new Date(props.monday);
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(endOfWeek.getDate() + 4);
-  const formatDate = (date: Date) => `${date.getMonth() + 1}${t('month')}${date.getDate()}${t('day')}`;
+  const formatDate = (date: Date) => `${date.getUTCMonth() + 1}${t('month')}${date.getUTCDate()}${t('day')}`;
   const weekHeaders = [t('monday'), t('tuesday'), t('wednesday'), t('thursday'), t('friday')];
 
   return (
@@ -114,14 +110,12 @@ export default function TimetableClick() {
               {row.map((cell, colIndex) => (
                 <Table.Td key={colIndex} className={`ag-cell ${(rowIndex % 2 === 0) ? 'highlight-cell-odd' : 'highlight-cell-even'}`}>
                   {cell ? (
-                    // 2. セルをLinkコンポーネントでラップし、IDを渡す
                     <Link
-                      href="/timetable-change"
-                      data={{ change_request_id: cell.id }}
+                      href={route('teacher.timetablechange.show', { change: cell.id })} // ルート名とパラメータを正しく指定
                       as="button"
                       className="timetable-cell-link"
                     >
-                      {`${cell.subject.name}\n${cell.user.name}${t('teacherSuffix', { ns: 'common' })}\n${cell.room.name}`}
+                      {`${cell.subject.name}\n${cell.teacher.name}${t('teacherSuffix', { ns: 'common' })}\n${cell.room.name}`}
                     </Link>
                   ) : ''}
                 </Table.Td>
@@ -135,21 +129,100 @@ export default function TimetableClick() {
         <Button onClick={() => window.history.back()} variant="filled" size="xl" style={{ width: '150px' }}>
           {t('back', { ns: 'common' })}
         </Button>
-        <Button component={Link} href={'/timetable-search'} variant="filled" size="lg">
+        <Button component={Link} href={route('timetable.search')} variant="filled" size="lg"> {/* ルート名は適宜調整 */}
           {t('searchAndChange')}
         </Button>
       </div>
 
-      {/* --- CSSスタイル --- */}
       <style>{`
-        /* ... 省略 ... */
+        .custom-table {
+          table-layout: fixed !important;
+          width: 100% !important; 
+          max-width: 840px;
+          border-collapse: collapse;
+          margin: 0 auto;
+          margin-top: 50px; 
+        }
+        .custom-table th, .custom-table td {
+          min-width: 100px;
+          height: 90px;
+          text-align: center;
+          vertical-align: middle;
+          border: 1px solid white;
+          user-select: none;
+          white-space: pre-wrap;
+        }
+        .header-black {
+          background-color: black !important;
+          border: 1px solid white;
+          color: white;
+        }
+        .header-blue {
+          background-color: rgb(12, 106, 207) !important;
+          color: white !important;
+          border: 1px solid white;
+          font-size: 50px;
+        }
+        .header-blue.english {
+          font-size: 20px;
+        }
+        .ag-cell {
+          font-size: 24px; /* 少し小さく調整 */
+        }
+        .highlight-cell-odd {
+          background-color: rgb(190, 209, 255) !important;
+        }
+        .highlight-cell-even {
+          background-color: rgb(219, 223, 255) !important;
+        }
+        .rectangle {
+          position: relative;
+          width: 100%;
+          height: 120px;
+          background-color: rgb(12, 106, 207) !important;
+          margin-bottom: 10px;
+          display: flex;
+          align-items: flex-start;
+        }
+        .date-selector {
+          background-color: white;
+          padding: 10px;
+          display: flex;
+          gap: 10px;
+          font-weight: bold;
+          font-size: 30px;
+          margin-top: 20px;
+          margin-left: 20px;
+          border: 2px solid black;
+        }
+        .date-selector button {
+          font-size: 30px;
+          cursor: pointer;
+          background: transparent;
+          border: none;
+          padding: 0 20px;
+        }
+        .top-right-box {
+          position: absolute;
+          top: 25px;
+          right: 30px;
+          height: 60px;
+          background-color: white;
+          border: 2px solid black;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 20px;
+          font-weight: bold;
+          padding: 0 20px;
+        }
         .timetable-cell-link {
           display: flex;
           align-items: center;
           justify-content: center;
           width: 100%;
           height: 100%;
-          padding: 0;
+          padding: 5px;
           margin: 0;
           background: transparent;
           border: none;
@@ -157,6 +230,7 @@ export default function TimetableClick() {
           font-size: inherit;
           white-space: pre-wrap;
           cursor: pointer;
+          line-height: 1.2;
         }
         .bottom-buttons-container {
           display: flex;
@@ -166,6 +240,10 @@ export default function TimetableClick() {
           bottom: 50px;
           left: 50px;
           right: 50px;
+          z-index: 10;
+        }
+        @media (max-width: 768px) {
+          /* ... responsive styles ... */
         }
       `}</style>
     </>
