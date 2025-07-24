@@ -81,6 +81,70 @@ class TimetableController extends Controller
             'timetable' => $timetable,
         ]);
     }
+
+    public function teacherChangeView(Request $request): Response
+    {
+        // 1. 初期設定
+        $teacher = auth('teacher')->user();
+        $teacherId = $teacher->id;
+        $date = Carbon::parse($request->input('date', now()));
+        $weekStart = $date->copy()->startOfWeek(Carbon::MONDAY);
+        $weekEnd = $date->copy()->endOfWeek(Carbon::FRIDAY);
+
+        // 2. 基本時間割を取得し、IDをキーにした連想配列（マップ）を作成
+        $baseTimetable = Timetable::where('teacher_id', $teacherId)
+            ->with(['room', 'schoolClass', 'subject', 'teacher'])
+            ->get();
+        
+        // 検索と変更適用のために、IDをキーにしたコレクションを作成
+        $finalTimetableEntries = $baseTimetable->keyBy('id')->all();
+
+        // 3. 関連する時間割変更のみを効率的に取得
+        $timetableIds = $baseTimetable->pluck('id');
+        // 変更案
+        $timetableChanges = TimetableChange::where('approval', true)
+            ->where(function ($query) use ($weekStart, $weekEnd, $teacherId) {
+                // 変更の「対象日」が今週に含まれている
+                $query->whereBetween('date', [$weekStart, $weekEnd]);
+            })
+            ->where(function ($query) use ($teacherId) {
+                $query->whereHas('beforeTimetable', function ($q) use ($teacherId) {
+                    $q->where('teacher_id', $teacherId);
+                });
+            })
+            ->with([
+                'beforeTimetable.room', 'beforeTimetable.schoolClass', 'beforeTimetable.subject', 'beforeTimetable.teacher',
+                'afterTimetable.room', 'afterTimetable.schoolClass', 'afterTimetable.subject', 'afterTimetable.teacher'
+            ])
+            ->get();
+
+        // 4. 変更を適用 (★ ロジックを修正)
+        foreach ($timetableChanges as $change) {
+            // 「変更元」が今週のコマの場合
+            if ($change->date->between($weekStart, $weekEnd) && isset($finalTimetableEntries[$change->before_timetable_id])) {
+                $originalEntry = $finalTimetableEntries[$change->before_timetable_id];
+                $changedEntry = clone $change->afterTimetable; // 変更先情報をコピー
+
+                // 元のdayとlessonを維持する
+                $changedEntry->day = $originalEntry->day;
+                $changedEntry->lesson = $originalEntry->lesson;
+                
+                $finalTimetableEntries[$change->before_timetable_id] = $changedEntry;
+            }
+        }
+
+        // 5. ビュー用の形式に整形
+        $timetable = $this->formatTimetableForView(collect($finalTimetableEntries));
+
+        return Inertia::render('TimetableClick', [
+            'user' => $teacher,
+            'date' => $date,
+            'monday' => $weekStart,
+            'friday' => $weekEnd,
+            'timetable' => $timetable,
+        ]);
+    }
+    
     /**
      * 指定された日付を含む週の時間割を取得し、変更を反映させて表示します。
      *

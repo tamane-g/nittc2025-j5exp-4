@@ -27,7 +27,7 @@ Route::prefix('student')->name('student.')
 Route::prefix('teacher')->name('teacher.')
     ->middleware(['auth:teacher'])->group(function () {
     Route::get('/timetable', [TimetableController::class, 'teacherView'])->name('timetable.view'); // Timetable
-    Route::get('/change', [TimetableChangeController::class, 'show'])->name('timetablechange.view');
+    Route::get('/change', [TimetableController::class, 'teacherChangeView'])->name('timetablechange.view');
     Route::post('/change', [TimetableChangeController::class, 'store'])->name('timetablechange.store');
     Route::get('/notice', [TeacherController::class, 'notice'])->name('notice');
 });
