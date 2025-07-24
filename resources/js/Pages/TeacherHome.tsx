@@ -1,7 +1,7 @@
 // resources/js/Pages/TeacherHome.tsx
 
 import axios from 'axios';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Box, Button } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@inertiajs/react';
@@ -9,6 +9,7 @@ import { Link } from '@inertiajs/react';
 export default function TeacherHome() {
   // 1. 'home'と'common'の名前空間を指定
   const { t, i18n } = useTranslation(['home', 'common']);
+
 
   // 2. ボタンのデータを定義（言語に依存しないキーを追加）
   const buttonData = [
@@ -81,7 +82,7 @@ export default function TeacherHome() {
             }
           }}
         >
-          {t('teacher.logout', { ns: 'common' })}
+          {t('logout', { ns: 'common' })}
         </Button>
       </div>
 
@@ -94,15 +95,16 @@ export default function TeacherHome() {
           padding: 130px 40px;
           justify-content: center; /* ボタンを中央揃え */
         }
-        .home-button {
+       .home-button {
+          min-width: 160px;
+          padding: 20px;
           height: 150px;
-          width: 160px;
-          white-space: normal; /* テキストの折り返しを許可 */
-          word-break: break-word; /* 単語の途中でも改行 */
+          white-space: normal;
+          word-break: break-word;
         }
         .lang-en .home-button {
-          height: 150px; /* 英語でも高さを統一 */
-          width: 180px; /* 少し幅を広げる */
+          min-width: 180px; /* 英語だと少し余裕 */
+          max-width: 250px;  /* 長すぎないように上限 */
         }
         @media (max-width: 768px) {
           .button-container {

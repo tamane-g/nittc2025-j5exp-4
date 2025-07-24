@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Container, Table, Button, Group } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
-import { Link } from '@inertiajs/react'; // InertiaのLinkコンポーネントを使用
+import { Link, usePage } from '@inertiajs/react'; // InertiaのLinkコンポーネントを使用
 
 // --- データ型定義 ---
 interface Notification {
@@ -17,20 +17,11 @@ interface Notification {
 export default function NotificationPage() {
   // 1. 'notification'と'common'の名前空間を指定
   const { t, i18n } = useTranslation(['notification', 'common']);
+  const { props } = usePage();
+  console.log(props);
 
   // --- モックデータ ---
   const [notifications, setNotifications] = useState<Notification[]>([]);
-
-  useEffect(() => {
-    // t関数が使えるようになってからデータを設定
-    setNotifications([
-      { sender: t('teacher:name', { ns: 'notification' }), subjectKey: 'rejected', date: '1945/12/25' },
-      { sender: t('teacher', { ns: 'common' }), subjectKey: 'approved', date: '1945/12/26' },
-      { sender: t('admin', { ns: 'common' }), subjectKey: 'changeNeeded', date: '1945/12/27' },
-    ]);
-  }, [i18n.language, t]);
-  // --- ここまでモックデータ ---
-
 
   // --- テーブルヘッダー ---
   const tableHeaders = [

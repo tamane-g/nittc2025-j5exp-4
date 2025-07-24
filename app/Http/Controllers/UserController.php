@@ -121,19 +121,19 @@ class UserController extends Controller
     public function import(Request $request): RedirectResponse
     {
         $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt'
+            'csvFile' => 'required|file|mimes:csv,txt'
         ]);
 
         try {
-            $file = $request->file('csv_file');
+            $file = $request->file('csvFile');
             $csv = Reader::createFromPath($file->getPathname(), 'r');
             $csv->setHeaderOffset(0);
 
-            $requiredColumns = ['name', 'email', 'password', 'type'];
+            $requiredColumns = ['name', 'email', 'password'];
             $header = $csv->getHeader();
             if (count(array_intersect($requiredColumns, $header)) !== count($requiredColumns)) {
-                return Redirect::route('regist.view') // regist.view にリダイレクト
-                    ->with('error', 'CSVファイルに必須のヘッダー（name, email, password, type）が不足しています。');
+                return Redirect::route('admin.regist.view') // regist.view にリダイレクト
+                    ->with('error', 'CSVファイルに必須のヘッダー（name, email, password）が不足しています。');
             }
 
             $records = $csv->getRecords($header);
@@ -179,7 +179,7 @@ class UserController extends Controller
             });
 
         } catch (Exception $e) {
-            return Redirect::route('regist.view') // regist.view にリダイレクト
+            return Redirect::route('admin.regist.view') // regist.view にリダイレクト
                 ->with('error', 'CSVのインポートに失敗しました。ファイル形式を確認してください。エラー: ' . $e->getMessage());
         }
 
@@ -189,12 +189,12 @@ class UserController extends Controller
         }
         if ($failureCount > 0) {
             $responseMessage .= " 失敗: {$failureCount}件。";
-            return Redirect::route('regist.view') // regist.view にリダイレクト
+            return Redirect::route('admin.regist.view') // regist.view にリダイレクト
                 ->with('error', $responseMessage)
                 ->with('import_errors', $errors);
         }
 
-        return Redirect::route('regist.view')->with('success', $responseMessage); // regist.view にリダイレクト
+        return Redirect::route('admin.regist.view')->with('success', $responseMessage); // regist.view にリダイレクト
     }
 
     /**
@@ -246,6 +246,31 @@ class UserController extends Controller
      */
     public function notice()
     {
-        return Inertia::render("StudentNotification", ["notice" => auth('student')->user()->notifications]);
+        $student = auth('student')->user();
+
+        // 1. 生徒個人に紐づく通知を取得
+        $personalNotifications = $student->notifications;
+
+        // 2. 生徒が所属するクラスに紐づく通知を取得
+        $classNotifications = $student->schoolClass->notifications;
+
+        // 3. 2つのコレクションをマージ（結合）
+        $allNotifications = collect($personalNotifications)->merge($classNotifications);
+
+        // 4. マージした各通知から不要なIDを取り除き、新しいコレクションを作成
+        $formattedNotifications = $allNotifications->map(function ($notification) {
+            // Eloquentモデルをコレクションに変換し、指定したキーを除外する
+            return collect($notification)->except(['user_id', 'school_class_id']);
+        });
+
+        // 5. 最終的なコレクションを日付でソート
+        $sortedNotifications = $formattedNotifications
+            ->sortByDesc('created_at')
+            ->values();
+
+        // 6. フロントエンドに渡す
+        return Inertia::render("StudentNotification", [
+            "notice" => $sortedNotifications
+        ]);
     }
 }

@@ -15,7 +15,14 @@
   "programming": "プログラミング",
   "experiment": "実験",
   "physicalEducation": "体育",
+  "teacherSuffix": "先生",
   "student": {
+    "logout": "ログアウト"
+  },
+  "teacher": {
+    "logout": "ログアウト"
+  },
+  "admin": {
     "logout": "ログアウト"
   }
 }

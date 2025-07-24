@@ -24,16 +24,8 @@ class TimetableChangeController extends Controller
      */
     public function index(): Response
     {
-        $changes = TimetableChange::with([
-            'teacher',
-            'beforeTimetable',
-            'afterTimetable'
-        ])->latest()->get();
-
         // 'TimetableChanges/Index' はフロントエンドのVue/Reactコンポーネントのパスを想定
-        return Inertia::render('TimetableChange', [
-            'changes' => $changes,
-        ]);
+        return Inertia::render('TimetableChange');
     }
 
     /**

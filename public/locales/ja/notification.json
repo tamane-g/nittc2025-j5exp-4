@@ -3,19 +3,12 @@
     "title": "通知",
     "sender": "送信者",
     "subject": "件名",
-    "date": "日付",
-    "name": "名前",
-    "rejected": "却下されました",
-    "approved": "承認されました",
-    "changeNeeded": "変更が必要です"
+    "date": "日付"
   },
   "student": {
-    "title": "授業変更通知",
+    "title": "通知",
     "date": "日付",
-    "period": "時限",
-    "before": "変更前",
-    "after": "変更後",
-    "realtimeOSEngineering": "リアルタイムOS演習",
-    "embeddedSystemsOverview": "組み込みシステム総論"
+    "sender": "送信者",
+    "subject": "件名"
   }
 }

@@ -1,7 +1,7 @@
 // resources/js/Pages/Registration.tsx
 
 import React from 'react';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { Box, Button, Container, FileInput, Group, Alert } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { IconCircleCheck } from '@tabler/icons-react';
@@ -9,6 +9,9 @@ import { IconCircleCheck } from '@tabler/icons-react';
 export default function Registration() {
   // 1. 'user'と'common'の名前空間を指定
   const { t } = useTranslation(['user', 'common']);
+   const { flash, errors: inertiaErrors } = usePage().props;
+   console.log(flash);
+   console.log(inertiaErrors);
 
   // 2. useFormでファイルと状態を管理
   const { data, setData, post, processing, errors, recentlySuccessful } = useForm<{ csvFile: File | null }>({
@@ -19,7 +22,7 @@ export default function Registration() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (data.csvFile) {
-      post('/regist', { // POST先URLは適宜変更してください
+      post(route('admin.regist.import'), { // POST先URLは適宜変更してください
         forceFormData: true, // ファイルを送信するために必要
       });
     } else {
@@ -50,7 +53,6 @@ export default function Registration() {
         <FileInput
           style={{ padding: '0 70px', marginTop: '20px' }}
           w="100%"
-          maxW={440} // 最大幅を設定
           size="lg"
           placeholder={t('registration.csvFilePlaceholder', { ns: 'user' })}
           value={data.csvFile}
