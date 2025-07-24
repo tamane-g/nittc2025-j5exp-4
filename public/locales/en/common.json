@@ -18,10 +18,5 @@
   "teacherSuffix": "",
   "student": {
     "logout": "Logout"
-  },
-  "teacher": {
-    "logout": "Logout"
-  },
-  "admin": {
-    "logout": "Logout"
+  }
 }
