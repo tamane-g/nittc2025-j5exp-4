@@ -193,7 +193,7 @@ class UserController extends Controller
                 ->with('error', $responseMessage)
                 ->with('import_errors', $errors);
         }
-
+        
         return Redirect::route('admin.regist.view')->with('success', $responseMessage); // regist.view にリダイレクト
     }
 

@@ -25,9 +25,10 @@ class NotificationSeeder extends Seeder
 
         UserNotification::create([
             "user_id" => 1,
-            "owner" => "神",
-            "title" => "世界破滅のお知らせ",
-            "description" => "宇宙は終わります。",
+            "owner" => "たつき諒",
+            "title" => "日本終了のお知らせ",
+            "description" => "今日、日本に大災害が起こる夢を見ました。",
+            "created_at" => '2025-07-05 12:00:00',
         ]);
 
         SchoolClassNotification::create([
