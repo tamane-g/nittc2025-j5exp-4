@@ -15,10 +15,13 @@
   "programming": "Programming",
   "experiment": "Experiment",
   "physicalEducation": "Physical Education",
+  "teacherSuffix": "",
   "student": {
     "logout": "Logout"
   },
   "teacher": {
     "logout": "Logout"
-  }
+  },
+  "admin": {
+    "logout": "Logout"
 }
