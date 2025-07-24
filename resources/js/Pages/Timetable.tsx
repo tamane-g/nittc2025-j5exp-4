@@ -14,17 +14,11 @@ interface TimetableEntry {
   room: { name: string; };
 }
 
-interface PageProps {
-  user?: { id?: string; name?: string; class?: string; number?: string; };
-  timetable: TimetableEntry[]; // Laravelから渡される時間割データは配列であることを期待
-  first_date: string;        // Laravelから渡される週の月曜日の日付
-  [key: string]: any;
-}
-
 // --- メインコンポーネント ---
 export default function Timetable() {
   const { t, i18n } = useTranslation(['timetable', 'common']);
-  const { props } = usePage<PageProps>();
+  const { props } = usePage();
+  console.log(props);
   const isEnglish = i18n.language === 'en';
 
   // propsのtimetableデータから表示用の2次元配列を生成
